@@ -1,6 +1,6 @@
 import Foundation
 
 enum NetworkEnvironment {
-    /// Replace with real URL from Supabase dashboard; do not commit secrets in git.
-    static let supabaseURLPlaceholder = "https://YOUR_PROJECT.supabase.co"
+    static let supabaseURL = URL(string: "https://cikpfliqixgkrydporpa.supabase.co")!
+    static let supabaseAnonKey = "sb_publishable_ybR9eKUFIWhl1RlrCn3alQ_8To8zmR3"
 }

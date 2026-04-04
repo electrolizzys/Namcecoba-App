@@ -97,6 +97,14 @@
 			path = Namtsetsoba;
 			sourceTree = "<group>";
 		};
+		7C98C8C92F8149120006D8A1 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				7C98C8CA2F8149120006D8A1 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
 		8A1000252F81491000000025 /* Core */ = {
 			isa = PBXGroup;
 			children = (
@@ -233,14 +241,6 @@
 			path = Map;
 			sourceTree = "<group>";
 		};
-		7C98C8C92F8149120006D8A1 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				7C98C8CA2F8149120006D8A1 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -285,6 +285,9 @@
 				Base,
 			);
 			mainGroup = 7C98C8B72F8149100006D8A1;
+			packageReferences = (
+				7CAD72832F815DAB00BE9AAD /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			productRefGroup = 7C98C8C12F8149100006D8A1 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -534,6 +537,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7CAD72832F815DAB00BE9AAD /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 7C98C8B82F8149100006D8A1 /* Project object */;
 }
