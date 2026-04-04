@@ -11,6 +11,9 @@
 		7C98C8C62F8149100006D8A1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C98C8C52F8149100006D8A1 /* ContentView.swift */; };
 		7C98C8C82F8149120006D8A1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C98C8C72F8149120006D8A1 /* Assets.xcassets */; };
 		7C98C8CB2F8149120006D8A1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C98C8CA2F8149120006D8A1 /* Preview Assets.xcassets */; };
+		7CAD72852F816E9200BE9AAD /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAD72842F816E9200BE9AAD /* AuthViewModel.swift */; };
+		7CAD72872F8173FA00BE9AAD /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAD72862F8173FA00BE9AAD /* SupabaseClient.swift */; };
+		7CAD728A2F81789100BE9AAD /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 7CAD72892F81789100BE9AAD /* Supabase */; };
 		8A1000132F81491000000013 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1000012F81491000000001 /* DesignTokens.swift */; };
 		8A1000142F81491000000014 /* AppModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1000022F81491000000002 /* AppModels.swift */; };
 		8A1000152F81491000000015 /* NetworkEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1000032F81491000000003 /* NetworkEnvironment.swift */; };
@@ -37,6 +40,8 @@
 		7C98C8C52F8149100006D8A1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		7C98C8C72F8149120006D8A1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7C98C8CA2F8149120006D8A1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		7CAD72842F816E9200BE9AAD /* AuthViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		7CAD72862F8173FA00BE9AAD /* SupabaseClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		8A1000012F81491000000001 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		8A1000022F81491000000002 /* AppModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModels.swift; sourceTree = "<group>"; };
 		8A1000032F81491000000003 /* NetworkEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEnvironment.swift; sourceTree = "<group>"; };
@@ -62,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7CAD728A2F81789100BE9AAD /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -73,6 +79,7 @@
 			children = (
 				7C98C8C22F8149100006D8A1 /* Namtsetsoba */,
 				7C98C8C12F8149100006D8A1 /* Products */,
+				7CAD72882F81787300BE9AAD /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -103,6 +110,13 @@
 				7C98C8CA2F8149120006D8A1 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		7CAD72882F81787300BE9AAD /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		8A1000252F81491000000025 /* Core */ = {
@@ -136,6 +150,7 @@
 		8A1000282F81491000000028 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
+				7CAD72862F8173FA00BE9AAD /* SupabaseClient.swift */,
 				8A1000032F81491000000003 /* NetworkEnvironment.swift */,
 			);
 			path = Networking;
@@ -180,6 +195,7 @@
 		8A10002C2F8149100000002C /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				7CAD72842F816E9200BE9AAD /* AuthViewModel.swift */,
 				8A10000A2F8149100000000A /* AuthView.swift */,
 			);
 			path = Auth;
@@ -257,6 +273,9 @@
 			dependencies = (
 			);
 			name = Namtsetsoba;
+			packageProductDependencies = (
+				7CAD72892F81789100BE9AAD /* Supabase */,
+			);
 			productName = Namtsetsoba;
 			productReference = 7C98C8C02F8149100006D8A1 /* Namtsetsoba.app */;
 			productType = "com.apple.product-type.application";
@@ -331,6 +350,8 @@
 				8A1000182F81491000000018 /* OrderService.swift in Sources */,
 				8A1000212F81491000000021 /* OrdersView.swift in Sources */,
 				8A1000202F81491000000020 /* ProfileView.swift in Sources */,
+				7CAD72852F816E9200BE9AAD /* AuthViewModel.swift in Sources */,
+				7CAD72872F8173FA00BE9AAD /* SupabaseClient.swift in Sources */,
 				8A1000222F81491000000022 /* SearchView.swift in Sources */,
 				8A1000192F81491000000019 /* StoreService.swift in Sources */,
 				8A10001B2F8149100000001B /* Utilities.swift in Sources */,
@@ -548,6 +569,14 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7CAD72892F81789100BE9AAD /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7CAD72832F815DAB00BE9AAD /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7C98C8B82F8149100006D8A1 /* Project object */;
 }
