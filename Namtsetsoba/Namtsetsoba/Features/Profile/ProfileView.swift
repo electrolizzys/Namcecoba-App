@@ -4,9 +4,7 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             List {
-                NavigationLink("Account / Auth") {
-                    AuthView()
-                }
+                Text("Account info — later")
                 Text("Notifications — later")
                 Text("Chat — later")
             }
