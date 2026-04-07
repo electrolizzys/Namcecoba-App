@@ -7,7 +7,7 @@ final class BasketService {
 
     private init() {}
 
-    // MARK: - Row types for Supabase decoding
+    // MARK: - Row types matching database columns
 
     struct StoreRow: Decodable {
         let id: UUID
@@ -30,26 +30,47 @@ final class BasketService {
 
     struct BasketRow: Decodable {
         let id: UUID
+        let storeId: UUID
         let title: String
         let description: String?
         let originalPrice: Double
         let discountedPrice: Double
-        let pickupStartTime: Date
-        let pickupEndTime: Date
+        let pickupStartTime: String
+        let pickupEndTime: String
         let itemsDescription: String?
         let remainingCount: Int
-        let store: StoreRow
 
-        func toBasket() -> Basket {
-            Basket(
+        enum CodingKeys: String, CodingKey {
+            case id, title, description
+            case storeId = "store_id"
+            case originalPrice = "original_price"
+            case discountedPrice = "discounted_price"
+            case pickupStartTime = "pickup_start_time"
+            case pickupEndTime = "pickup_end_time"
+            case itemsDescription = "items_description"
+            case remainingCount = "remaining_count"
+        }
+
+        func toBasket(store: Store) -> Basket {
+            let isoFormatter = ISO8601DateFormatter()
+            isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+            let start = isoFormatter.date(from: pickupStartTime)
+                ?? ISO8601DateFormatter().date(from: pickupStartTime)
+                ?? Date()
+            let end = isoFormatter.date(from: pickupEndTime)
+                ?? ISO8601DateFormatter().date(from: pickupEndTime)
+                ?? Date()
+
+            return Basket(
                 id: id,
-                store: store.toStore(),
+                store: store,
                 title: title,
                 description: description ?? "",
                 originalPrice: Decimal(originalPrice),
                 discountedPrice: Decimal(discountedPrice),
-                pickupStartTime: pickupStartTime,
-                pickupEndTime: pickupEndTime,
+                pickupStartTime: start,
+                pickupEndTime: end,
                 itemsDescription: itemsDescription ?? "",
                 remainingCount: remainingCount,
                 distanceKm: nil
@@ -63,28 +84,49 @@ final class BasketService {
         let description: String
         let originalPrice: Double
         let discountedPrice: Double
-        let pickupStartTime: Date
-        let pickupEndTime: Date
+        let pickupStartTime: String
+        let pickupEndTime: String
         let itemsDescription: String
         let remainingCount: Int
+
+        enum CodingKeys: String, CodingKey {
+            case title, description
+            case storeId = "store_id"
+            case originalPrice = "original_price"
+            case discountedPrice = "discounted_price"
+            case pickupStartTime = "pickup_start_time"
+            case pickupEndTime = "pickup_end_time"
+            case itemsDescription = "items_description"
+            case remainingCount = "remaining_count"
+        }
     }
 
     // MARK: - Customer: browse available baskets
 
     func fetchAvailableBaskets() async -> [Basket] {
         do {
-            let now = ISO8601DateFormatter().string(from: Date())
-            let rows: [BasketRow] = try await db
+            let storeRows: [StoreRow] = try await db
+                .from("stores")
+                .select()
+                .execute()
+                .value
+
+            let storeMap = Dictionary(uniqueKeysWithValues: storeRows.map { ($0.id, $0.toStore()) })
+
+            let basketRows: [BasketRow] = try await db
                 .from("baskets")
-                .select("*, store:stores(*)")
+                .select()
                 .gt("remaining_count", value: 0)
-                .gte("pickup_end_time", value: now)
                 .order("discounted_price")
                 .execute()
                 .value
-            return rows.map { $0.toBasket() }
+
+            return basketRows.compactMap { row in
+                guard let store = storeMap[row.storeId] else { return nil }
+                return row.toBasket(store: store)
+            }
         } catch {
-            print("⚠️ Supabase baskets fetch failed, using mock data: \(error.localizedDescription)")
+            print("⚠️ Supabase baskets fetch failed, using mock data: \(error)")
             return MockData.baskets
         }
     }
@@ -93,16 +135,26 @@ final class BasketService {
 
     func fetchBusinessBaskets(storeId: UUID) async -> [Basket] {
         do {
-            let rows: [BasketRow] = try await db
+            let storeRows: [StoreRow] = try await db
+                .from("stores")
+                .select()
+                .eq("id", value: storeId)
+                .execute()
+                .value
+
+            guard let store = storeRows.first?.toStore() else { return [] }
+
+            let basketRows: [BasketRow] = try await db
                 .from("baskets")
-                .select("*, store:stores(*)")
+                .select()
                 .eq("store_id", value: storeId)
                 .order("created_at", ascending: false)
                 .execute()
                 .value
-            return rows.map { $0.toBasket() }
+
+            return basketRows.map { $0.toBasket(store: store) }
         } catch {
-            print("⚠️ Supabase business baskets fetch failed, using mock data: \(error.localizedDescription)")
+            print("⚠️ Supabase business baskets fetch failed, using mock data: \(error)")
             return MockData.businessBaskets
         }
     }
