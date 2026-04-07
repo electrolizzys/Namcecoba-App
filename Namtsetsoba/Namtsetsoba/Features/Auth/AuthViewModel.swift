@@ -90,7 +90,10 @@ final class AuthViewModel {
 
         Task { @MainActor in
             do {
-                try await supabase.auth.resetPasswordForEmail(trimmed)
+                try await supabase.auth.resetPasswordForEmail(
+                    trimmed,
+                    redirectTo: URL(string: "https://electrolizzys.github.io/Namcecoba-App/")
+                )
                 successMessage = "Password reset link sent! Check your email."
                 currentScreen = .login
                 resetEmail = ""
