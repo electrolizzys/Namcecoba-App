@@ -39,6 +39,7 @@ struct AuthView: View {
 
                 SecureField("Password", text: $viewModel.password)
                     .textFieldStyle(.roundedBorder)
+                    .textContentType(.oneTimeCode)
             }
             .padding(.horizontal)
 
@@ -101,9 +102,11 @@ struct AuthView: View {
 
                 SecureField("Password", text: $viewModel.password)
                     .textFieldStyle(.roundedBorder)
+                    .textContentType(.oneTimeCode)
 
                 SecureField("Confirm Password", text: $viewModel.confirmPassword)
                     .textFieldStyle(.roundedBorder)
+                    .textContentType(.oneTimeCode)
             }
             .padding(.horizontal)
 

@@ -6,7 +6,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if viewModel.isLoggedIn {
-                MainTabView()
+                MainTabView(viewModel: viewModel)
             } else {
                 AuthView(viewModel: viewModel)
             }
