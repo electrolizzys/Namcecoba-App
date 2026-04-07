@@ -42,7 +42,7 @@ final class AuthViewModel {
                 )
                 isLoggedIn = true
             } catch {
-                errorMessage = "Login failed. Check your email and password."
+                errorMessage = "Login failed: \(error.localizedDescription)"
             }
             isLoading = false
         }
@@ -70,7 +70,7 @@ final class AuthViewModel {
                 confirmPassword = ""
                 username = ""
             } catch {
-                errorMessage = "Registration failed. Try a different email."
+                errorMessage = "Registration failed: \(error.localizedDescription)"
             }
             isLoading = false
         }
@@ -98,9 +98,18 @@ final class AuthViewModel {
                 currentScreen = .login
                 resetEmail = ""
             } catch {
-                errorMessage = "Could not send reset link. Check the email address."
+                errorMessage = "Reset failed: \(error.localizedDescription)"
             }
             isLoading = false
+        }
+    }
+
+    // MARK: - Sign Out
+
+    func signOut() {
+        Task { @MainActor in
+            try? await supabase.auth.signOut()
+            isLoggedIn = false
         }
     }
 

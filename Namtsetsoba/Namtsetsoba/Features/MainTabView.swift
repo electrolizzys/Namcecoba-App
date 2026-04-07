@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MainTabView: View {
+    var viewModel: AuthViewModel
+
     var body: some View {
         TabView {
             HomeView()
@@ -15,12 +17,12 @@ struct MainTabView: View {
             OrdersView()
                 .tabItem { Label("Orders", systemImage: "bag.fill") }
 
-            ProfileView()
+            ProfileView(onSignOut: { viewModel.signOut() })
                 .tabItem { Label("Profile", systemImage: "person.fill") }
         }
     }
 }
 
 #Preview {
-    MainTabView()
+    MainTabView(viewModel: AuthViewModel())
 }
