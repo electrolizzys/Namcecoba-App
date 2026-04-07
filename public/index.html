@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analizi</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -16,29 +17,98 @@
             color: white;
             text-align: center;
         }
-        .container {
-            padding: 40px;
+        .container { padding: 40px; max-width: 400px; }
+        .checkmark { font-size: 80px; margin-bottom: 20px; }
+        h1 { font-size: 2em; margin-bottom: 10px; }
+        p { font-size: 1.1em; color: #a0a0b0; margin-top: 20px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #2a2a3e;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
         }
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            border: none;
+            border-radius: 8px;
+            background: #4a6cf7;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
         }
-        p {
-            font-size: 1.3em;
-            color: #a0a0b0;
-            margin-top: 20px;
-        }
-        .checkmark {
-            font-size: 80px;
-            margin-bottom: 20px;
-        }
+        button:hover { background: #3a5ce5; }
+        .error { color: #ff6b6b; font-size: 14px; }
+        .success { color: #51cf66; font-size: 14px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="checkmark">&#10003;</div>
-        <h1>Successfully registered on Analizi's application, looser!</h1>
-        <p>You can now go back to the app and sign in.</p>
+        <!-- Confirmation page (default) -->
+        <div id="confirm-page">
+            <div class="checkmark">&#10003;</div>
+            <h1>Successfully registered on Analizi's application, looser!</h1>
+            <p>You can now go back to the app and sign in.</p>
+        </div>
+
+        <!-- Password reset page -->
+        <div id="reset-page" class="hidden">
+            <h1>Set New Password</h1>
+            <p>Enter your new password below</p>
+            <input type="password" id="new-password" placeholder="New password (min 6 characters)">
+            <input type="password" id="confirm-password" placeholder="Confirm new password">
+            <div id="reset-message"></div>
+            <button onclick="updatePassword()">Update Password</button>
+        </div>
     </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cikpfliqixgkrydporpa.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_ybR9eKUFIWhl1RlrCn3alQ_8To8zmR3';
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function init() {
+            const hash = window.location.hash;
+            if (hash && hash.includes('type=recovery')) {
+                document.getElementById('confirm-page').classList.add('hidden');
+                document.getElementById('reset-page').classList.remove('hidden');
+            }
+        }
+
+        async function updatePassword() {
+            const pw = document.getElementById('new-password').value;
+            const confirm = document.getElementById('confirm-password').value;
+            const msg = document.getElementById('reset-message');
+
+            if (pw.length < 6) {
+                msg.innerHTML = '<p class="error">Password must be at least 6 characters</p>';
+                return;
+            }
+            if (pw !== confirm) {
+                msg.innerHTML = '<p class="error">Passwords do not match</p>';
+                return;
+            }
+
+            const { error } = await client.auth.updateUser({ password: pw });
+
+            if (error) {
+                msg.innerHTML = '<p class="error">Failed to update password. Try again.</p>';
+            } else {
+                document.getElementById('reset-page').innerHTML =
+                    '<div class="checkmark">&#10003;</div>' +
+                    '<h1>Password updated!</h1>' +
+                    '<p>Go back to the app and sign in with your new password.</p>';
+            }
+        }
+
+        init();
+    </script>
 </body>
 </html>
