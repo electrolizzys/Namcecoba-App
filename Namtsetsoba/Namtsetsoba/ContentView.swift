@@ -1,16 +1,19 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var viewModel = AuthViewModel()
+    @State private var appState = AppState()
+    @State private var authViewModel = AuthViewModel()
 
     var body: some View {
         Group {
-            if viewModel.isLoggedIn {
-                MainTabView(viewModel: viewModel)
+            if authViewModel.isLoggedIn {
+                MainTabView()
+                    .environment(appState)
             } else {
-                AuthView(viewModel: viewModel)
+                AuthView(viewModel: authViewModel)
             }
         }
+        .animation(.easeInOut, value: authViewModel.isLoggedIn)
     }
 }
 
