@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
+    @Environment(AuthViewModel.self) private var authViewModel
 
     var body: some View {
         @Bindable var state = appState
@@ -59,6 +60,17 @@ struct ProfileView: View {
                     Label("Help Center", systemImage: "questionmark.circle")
                     Label("About Namtsetsoba", systemImage: "info.circle")
                 }
+
+                Section {
+                    Button(role: .destructive) {
+                        authViewModel.signOut()
+                    } label: {
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            Text("Sign Out")
+                        }
+                    }
+                }
             }
             .navigationTitle("Profile")
         }
@@ -68,4 +80,5 @@ struct ProfileView: View {
 #Preview {
     ProfileView()
         .environment(AppState())
+        .environment(AuthViewModel())
 }

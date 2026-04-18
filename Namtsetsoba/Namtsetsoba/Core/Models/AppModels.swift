@@ -77,9 +77,10 @@ struct Basket: Identifiable, Hashable {
     let distanceKm: Double?
 
     var savingsPercent: Int {
-        guard originalPrice > 0 else { return 0 }
-        let fraction = (originalPrice - discountedPrice) / originalPrice * 100
-        return NSDecimalNumber(decimal: fraction).intValue
+        let orig = NSDecimalNumber(decimal: originalPrice).doubleValue
+        let disc = NSDecimalNumber(decimal: discountedPrice).doubleValue
+        guard orig > 0 else { return 0 }
+        return Int(((orig - disc) / orig) * 100)
     }
 
     static func == (lhs: Basket, rhs: Basket) -> Bool { lhs.id == rhs.id }

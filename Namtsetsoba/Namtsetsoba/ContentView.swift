@@ -9,6 +9,7 @@ struct ContentView: View {
             if authViewModel.isLoggedIn {
                 MainTabView()
                     .environment(appState)
+                    .environment(authViewModel)
             } else {
                 AuthView(viewModel: authViewModel)
             }
