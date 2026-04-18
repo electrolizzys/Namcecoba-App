@@ -37,6 +37,11 @@ struct StoresListView: View {
                 if lhs.isOpenNow != rhs.isOpenNow { return lhs.isOpenNow }
                 return lhs.rating > rhs.rating
             }
+        case .distance:
+            result.sort {
+                (LocationManager.shared.distanceToStore($0) ?? .infinity) <
+                (LocationManager.shared.distanceToStore($1) ?? .infinity)
+            }
         }
 
         return result
@@ -170,6 +175,7 @@ enum StoreSortOption: String, CaseIterable, Identifiable {
     case rating = "Top Rated"
     case name = "Name"
     case openNow = "Open Now"
+    case distance = "Distance"
 
     var id: String { rawValue }
 
@@ -178,6 +184,7 @@ enum StoreSortOption: String, CaseIterable, Identifiable {
         case .rating: "star.fill"
         case .name: "textformat"
         case .openNow: "clock.fill"
+        case .distance: "location.fill"
         }
     }
 }
@@ -239,6 +246,12 @@ struct StoreListCard: View {
                     Text("\(store.openTime) – \(store.closeTime)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+
+                    if let dist = LocationManager.shared.distanceToStore(store) {
+                        Text(String(format: "%.1f km", dist))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }

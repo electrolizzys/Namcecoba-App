@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocation
 import Observation
 
 @Observable
@@ -10,6 +11,14 @@ final class HomeViewModel {
     var searchQuery: String = ""
     var isLoading = false
     var frequentStoreIds: Set<UUID> = []
+    var userLocation: CLLocationCoordinate2D?
+
+    func distanceToStore(_ store: Store) -> Double? {
+        guard let user = userLocation else { return nil }
+        let userLoc = CLLocation(latitude: user.latitude, longitude: user.longitude)
+        let storeLoc = CLLocation(latitude: store.latitude, longitude: store.longitude)
+        return userLoc.distance(from: storeLoc) / 1000.0
+    }
 
     var availableStores: [Store] {
         let seen = NSMutableOrderedSet()
@@ -45,7 +54,9 @@ final class HomeViewModel {
         case .price:
             result.sort { $0.discountedPrice < $1.discountedPrice }
         case .distance:
-            result.sort { ($0.distanceKm ?? .infinity) < ($1.distanceKm ?? .infinity) }
+            result.sort {
+                (distanceToStore($0.store) ?? .infinity) < (distanceToStore($1.store) ?? .infinity)
+            }
         case .topPicks:
             result = result.filter { frequentStoreIds.contains($0.store.id) }
             result.sort { $0.discountedPrice < $1.discountedPrice }

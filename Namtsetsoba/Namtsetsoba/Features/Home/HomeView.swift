@@ -3,6 +3,8 @@ import SwiftUI
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
     @Environment(AppState.self) private var appState
+    @Environment(LocationManager.self) private var locationManager
+    @State private var showMap = false
 
     var body: some View {
         NavigationStack {
@@ -31,6 +33,19 @@ struct HomeView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Namtsetsoba")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showMap = true
+                    } label: {
+                        Image(systemName: "map.fill")
+                            .foregroundStyle(DesignTokens.primaryGreen)
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $showMap) {
+                MapExploreView()
+            }
             .searchable(text: $viewModel.searchQuery, prompt: "Search by store name")
             .refreshable { await viewModel.loadBaskets() }
             .task {
@@ -41,6 +56,10 @@ struct HomeView: View {
             }
             .onAppear {
                 viewModel.frequentStoreIds = appState.frequentStoreIds
+                viewModel.userLocation = locationManager.userLocation
+            }
+            .onChange(of: locationManager.userLocation?.latitude) { _, _ in
+                viewModel.userLocation = locationManager.userLocation
             }
             .onChange(of: appState.frequentStoreIds) { _, newValue in
                 viewModel.frequentStoreIds = newValue
@@ -267,7 +286,7 @@ struct BasketCard: View {
                 .foregroundStyle(.primary)
 
             HStack {
-                if let distance = basket.distanceKm {
+                if let distance = LocationManager.shared.distanceToStore(basket.store) {
                     Label(
                         String(format: "%.1f km", distance),
                         systemImage: "location.fill"
@@ -296,4 +315,5 @@ struct BasketCard: View {
 #Preview {
     HomeView()
         .environment(AppState())
+        .environment(LocationManager.shared)
 }

@@ -1,9 +1,11 @@
 import SwiftUI
+import MapKit
 
 struct BasketDetailView: View {
     let basket: Basket
     @Environment(AppState.self) private var appState
     @State private var showCheckout = false
+    @State private var showFullMap = false
 
     var body: some View {
         ScrollView {
@@ -67,12 +69,7 @@ struct BasketDetailView: View {
                 .font(.body.weight(.medium))
             }
 
-            if let distance = basket.distanceKm {
-                infoSection(title: "Distance", icon: "location.fill") {
-                    Text(String(format: "%.1f km away", distance))
-                        .font(.body.weight(.medium))
-                }
-            }
+            locationMapCard
 
             infoSection(title: "Availability", icon: "number") {
                 Text("\(basket.remainingCount) baskets remaining")
@@ -134,6 +131,49 @@ struct BasketDetailView: View {
         .padding()
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
+    }
+
+    // MARK: - Location Map
+
+    private var storeCoordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: basket.store.latitude, longitude: basket.store.longitude)
+    }
+
+    private var locationMapCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Location", systemImage: "mappin.and.ellipse")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Map(initialPosition: .region(MKCoordinateRegion(
+                center: storeCoordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
+            ))) {
+                Marker(basket.store.name, coordinate: storeCoordinate)
+                    .tint(DesignTokens.primaryGreen)
+            }
+            .frame(height: 150)
+            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.smallCornerRadius))
+            .allowsHitTesting(false)
+            .overlay {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture { showFullMap = true }
+            }
+
+            if let dist = LocationManager.shared.distanceToStore(basket.store) {
+                Label(String(format: "%.1f km away", dist), systemImage: "location.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
+        .fullScreenCover(isPresented: $showFullMap) {
+            StoreMapFullView(store: basket.store)
+        }
     }
 
     // MARK: - Order Bar

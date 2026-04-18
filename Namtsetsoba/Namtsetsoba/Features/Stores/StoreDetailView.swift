@@ -1,10 +1,12 @@
 import SwiftUI
+import MapKit
 
 struct StoreDetailView: View {
     let store: Store
     @Environment(AppState.self) private var appState
     @State private var baskets: [Basket] = []
     @State private var isLoading = true
+    @State private var showFullMap = false
 
     var body: some View {
         ScrollView {
@@ -13,6 +15,7 @@ struct StoreDetailView: View {
                 VStack(spacing: 16) {
                     infoCard
                     hoursCard
+                    locationCard
                     favouriteCard
                     basketsSection
                 }
@@ -99,6 +102,48 @@ struct StoreDetailView: View {
         .padding()
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
+    }
+
+    // MARK: - Location Map
+
+    private var storeCoordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: store.latitude, longitude: store.longitude)
+    }
+
+    private var locationCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Location", systemImage: "mappin.and.ellipse")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Map(initialPosition: .region(MKCoordinateRegion(
+                center: storeCoordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
+            ))) {
+                Marker(store.name, coordinate: storeCoordinate)
+                    .tint(DesignTokens.primaryGreen)
+            }
+            .frame(height: 160)
+            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.smallCornerRadius))
+            .allowsHitTesting(false)
+            .overlay {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture { showFullMap = true }
+            }
+
+            if let dist = LocationManager.shared.distanceToStore(store) {
+                Label(String(format: "%.1f km away", dist), systemImage: "location.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
+        .fullScreenCover(isPresented: $showFullMap) {
+            StoreMapFullView(store: store)
+        }
     }
 
     // MARK: - Favourite
