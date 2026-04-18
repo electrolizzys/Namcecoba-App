@@ -171,6 +171,17 @@ struct CheckoutView: View {
         Task {
             try? await Task.sleep(for: .seconds(1.5))
             let order = appState.placeOrder(for: basket)
+
+            if let userId = appState.userId {
+                try? await OrderService.shared.createOrder(
+                    userId: userId,
+                    basketId: basket.id,
+                    totalPaid: basket.discountedPrice,
+                    pickupCode: order.pickupCode
+                )
+                try? await BasketService.shared.decrementRemainingCount(basketId: basket.id)
+            }
+
             withAnimation {
                 completedOrder = order
                 isProcessing = false

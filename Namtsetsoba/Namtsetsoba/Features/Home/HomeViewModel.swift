@@ -47,12 +47,8 @@ final class HomeViewModel {
         case .distance:
             result.sort { ($0.distanceKm ?? .infinity) < ($1.distanceKm ?? .infinity) }
         case .topPicks:
-            result.sort { lhs, rhs in
-                let lFreq = frequentStoreIds.contains(lhs.store.id)
-                let rFreq = frequentStoreIds.contains(rhs.store.id)
-                if lFreq != rFreq { return lFreq }
-                return lhs.discountedPrice < rhs.discountedPrice
-            }
+            result = result.filter { frequentStoreIds.contains($0.store.id) }
+            result.sort { $0.discountedPrice < $1.discountedPrice }
         case .bestDeal:
             result.sort { $0.savingsPercent > $1.savingsPercent }
         }

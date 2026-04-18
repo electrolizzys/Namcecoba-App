@@ -19,14 +19,14 @@ struct MainTabView: View {
                 )
             }
 
+            StoresListView()
+                .tabItem { Label("Stores", systemImage: "storefront.fill") }
+
             OrdersView()
                 .tabItem { Label("Orders", systemImage: "bag.fill") }
 
             NotificationsTab()
                 .tabItem { Label("Notifications", systemImage: "bell.fill") }
-
-            ChatTab()
-                .tabItem { Label("Chat", systemImage: "message.fill") }
 
             ProfileView()
                 .tabItem { Label("Profile", systemImage: "person.fill") }

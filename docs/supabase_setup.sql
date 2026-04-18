@@ -164,3 +164,32 @@ from (values
 ) as b(store_name, title, description, original_price, discounted_price,
        start_offset, end_offset, items_description, remaining_count)
 join stores s on s.name = b.store_name;
+
+-- 6. ADD WORKING HOURS TO STORES
+-- ============================================
+
+alter table stores add column if not exists open_time text not null default '09:00';
+alter table stores add column if not exists close_time text not null default '21:00';
+
+update stores set open_time = '07:00', close_time = '20:00' where name = 'Bread House';
+update stores set open_time = '10:00', close_time = '23:00' where name = 'Machakhela';
+update stores set open_time = '08:00', close_time = '22:00' where name = 'Nikora';
+update stores set open_time = '09:00', close_time = '21:00' where name = 'Stamba Cafe';
+update stores set open_time = '08:00', close_time = '22:00' where name = 'Entree';
+update stores set open_time = '11:00', close_time = '23:00' where name = 'Pasanauri';
+update stores set open_time = '09:00', close_time = '20:00' where name = 'Sweet Palace';
+update stores set open_time = '08:00', close_time = '19:00' where name = 'Sakhachapure N1';
+update stores set open_time = '08:00', close_time = '23:00' where name = 'Fresco';
+update stores set open_time = '10:00', close_time = '21:00' where name = 'Lolita';
+
+-- 7. FUNCTIONS
+-- ============================================
+
+create or replace function decrement_basket_count(basket_uuid uuid)
+returns void as $$
+begin
+  update baskets
+  set remaining_count = remaining_count - 1
+  where id = basket_uuid and remaining_count > 0;
+end;
+$$ language plpgsql security definer;

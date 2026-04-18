@@ -15,6 +15,14 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut, value: authViewModel.isLoggedIn)
+        .onChange(of: authViewModel.isLoggedIn) { _, loggedIn in
+            if loggedIn {
+                Task {
+                    await appState.loadUserInfo()
+                    await appState.loadOrders()
+                }
+            }
+        }
     }
 }
 

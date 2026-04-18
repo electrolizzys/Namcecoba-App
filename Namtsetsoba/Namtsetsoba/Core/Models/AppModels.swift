@@ -59,6 +59,18 @@ struct Store: Identifiable, Hashable {
     let longitude: Double
     let category: ProductCategory
     let rating: Double
+    let openTime: String
+    let closeTime: String
+
+    var isOpenNow: Bool {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        guard let open = formatter.date(from: openTime),
+              let close = formatter.date(from: closeTime) else { return true }
+
+        let now = formatter.date(from: formatter.string(from: Date()))!
+        return now >= open && now <= close
+    }
 }
 
 // MARK: - Basket
@@ -123,25 +135,87 @@ enum OrderStatus: String, Codable {
     }
 }
 
-struct Order: Identifiable {
+struct Order: Identifiable, Hashable {
     let id: UUID
     let basket: Basket
     var status: OrderStatus
     let pickupCode: String
     let orderDate: Date
     let totalPaid: Decimal
+
+    static func == (lhs: Order, rhs: Order) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 
 // MARK: - Shared App State
 
 @Observable
 final class AppState {
+    private static let favouritesKey = "favourite_store_ids"
+
     var currentRole: UserRole = .customer
     var orders: [Order] = []
-    var frequentStoreIds: Set<UUID> = MockData.frequentStoreIds
+    var frequentStoreIds: Set<UUID> = [] {
+        didSet { saveFavourites() }
+    }
+
+    var userEmail: String = ""
+    var username: String = ""
+    var userId: UUID?
 
     var businessStore: Store = MockData.stores[0]
     var businessBaskets: [Basket] = MockData.businessBaskets
+
+    init() {
+        frequentStoreIds = Self.loadFavourites()
+    }
+
+    private func saveFavourites() {
+        let strings = frequentStoreIds.map(\.uuidString)
+        UserDefaults.standard.set(strings, forKey: Self.favouritesKey)
+    }
+
+    private static func loadFavourites() -> Set<UUID> {
+        guard let strings = UserDefaults.standard.stringArray(forKey: favouritesKey) else {
+            return MockData.frequentStoreIds
+        }
+        return Set(strings.compactMap { UUID(uuidString: $0) })
+    }
+
+    @MainActor
+    func loadUserInfo() async {
+        do {
+            let user = try await supabase.auth.session.user
+            userId = user.id
+            userEmail = user.email ?? ""
+            username = user.userMetadata["username"]?.value as? String ?? ""
+
+            if let role = user.userMetadata["role"]?.value as? String,
+               role == "business" {
+                currentRole = .business
+            }
+        } catch {
+            print("⚠️ Could not load user info: \(error.localizedDescription)")
+        }
+    }
+
+    @MainActor
+    func loadOrders() async {
+        guard let userId else { return }
+        orders = await OrderService.shared.fetchOrders(userId: userId)
+    }
+
+    func isFavourite(_ storeId: UUID) -> Bool {
+        frequentStoreIds.contains(storeId)
+    }
+
+    func toggleFavourite(_ storeId: UUID) {
+        if frequentStoreIds.contains(storeId) {
+            frequentStoreIds.remove(storeId)
+        } else {
+            frequentStoreIds.insert(storeId)
+        }
+    }
 
     func placeOrder(for basket: Basket) -> Order {
         let code = String(format: "%04d", Int.random(in: 1000...9999))

@@ -13,6 +13,7 @@ struct OrdersView: View {
                 }
             }
             .navigationTitle("Orders")
+            .refreshable { await appState.loadOrders() }
         }
     }
 
@@ -28,7 +29,9 @@ struct OrdersView: View {
             if !active.isEmpty {
                 Section("Active") {
                     ForEach(active) { order in
-                        OrderRow(order: order)
+                        NavigationLink(value: order) {
+                            OrderRow(order: order)
+                        }
                     }
                 }
             }
@@ -36,10 +39,15 @@ struct OrdersView: View {
             if !past.isEmpty {
                 Section("History") {
                     ForEach(past) { order in
-                        OrderRow(order: order)
+                        NavigationLink(value: order) {
+                            OrderRow(order: order)
+                        }
                     }
                 }
             }
+        }
+        .navigationDestination(for: Order.self) { order in
+            OrderDetailView(order: order)
         }
     }
 

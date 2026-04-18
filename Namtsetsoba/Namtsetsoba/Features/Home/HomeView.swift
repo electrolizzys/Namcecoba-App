@@ -8,7 +8,6 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: DesignTokens.padding) {
-                    storeBar
                     filterRow
 
                     if viewModel.isLoading {
@@ -39,6 +38,9 @@ struct HomeView: View {
                 if viewModel.allBaskets.isEmpty {
                     await viewModel.loadBaskets()
                 }
+            }
+            .onAppear {
+                viewModel.frequentStoreIds = appState.frequentStoreIds
             }
             .onChange(of: appState.frequentStoreIds) { _, newValue in
                 viewModel.frequentStoreIds = newValue
@@ -95,6 +97,12 @@ struct HomeView: View {
                 icon: "arrow.up.arrow.down",
                 label: viewModel.selectedSort.rawValue
             ) {
+                Button {
+                    viewModel.selectedSort = .price
+                } label: {
+                    Label("All", systemImage: "square.grid.2x2")
+                }
+                Divider()
                 ForEach(SortOption.allCases) { option in
                     Button {
                         viewModel.selectedSort = option

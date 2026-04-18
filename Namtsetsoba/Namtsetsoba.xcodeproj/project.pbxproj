@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C8E4F432F939561006E70AD /* OrderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8E4F422F939561006E70AD /* OrderDetailView.swift */; };
+		7C8E4F472F93AD1B006E70AD /* StoreDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8E4F442F93AD1B006E70AD /* StoreDetailView.swift */; };
+		7C8E4F482F93AD1B006E70AD /* StoresListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8E4F452F93AD1B006E70AD /* StoresListView.swift */; };
 		7C98C8C42F8149100006D8A1 /* NamtsetsobaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C98C8C32F8149100006D8A1 /* NamtsetsobaApp.swift */; };
 		7C98C8C62F8149100006D8A1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C98C8C52F8149100006D8A1 /* ContentView.swift */; };
 		7C98C8C82F8149120006D8A1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C98C8C72F8149120006D8A1 /* Assets.xcassets */; };
@@ -37,6 +40,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		7C8E4F422F939561006E70AD /* OrderDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OrderDetailView.swift; sourceTree = "<group>"; };
+		7C8E4F442F93AD1B006E70AD /* StoreDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreDetailView.swift; sourceTree = "<group>"; };
+		7C8E4F452F93AD1B006E70AD /* StoresListView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoresListView.swift; sourceTree = "<group>"; };
 		7C98C8C02F8149100006D8A1 /* Namtsetsoba.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Namtsetsoba.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C98C8C32F8149100006D8A1 /* NamtsetsobaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamtsetsobaApp.swift; sourceTree = "<group>"; };
 		7C98C8C52F8149100006D8A1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -78,6 +84,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7C8E4F462F93AD1B006E70AD /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				7C8E4F442F93AD1B006E70AD /* StoreDetailView.swift */,
+				7C8E4F452F93AD1B006E70AD /* StoresListView.swift */,
+			);
+			path = Stores;
+			sourceTree = "<group>";
+		};
 		7C98C8B72F8149100006D8A1 = {
 			isa = PBXGroup;
 			children = (
@@ -175,6 +190,7 @@
 		8A10002B2F8149100000002B /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				7C8E4F462F93AD1B006E70AD /* Stores */,
 				8A1000122F81491000000012 /* MainTabView.swift */,
 				8A10002C2F8149100000002C /* Auth */,
 				8A10002D2F8149100000002D /* Home */,
@@ -234,6 +250,7 @@
 		8A1000312F81491000000031 /* Orders */ = {
 			isa = PBXGroup;
 			children = (
+				7C8E4F422F939561006E70AD /* OrderDetailView.swift */,
 				8A10000F2F8149100000000F /* OrdersView.swift */,
 			);
 			path = Orders;
@@ -360,9 +377,12 @@
 				8A1000222F81491000000022 /* SearchView.swift in Sources */,
 				8A1000192F81491000000019 /* StoreService.swift in Sources */,
 				8A10001B2F8149100000001B /* Utilities.swift in Sources */,
+				7C8E4F472F93AD1B006E70AD /* StoreDetailView.swift in Sources */,
 				8A1000362F81491000000036 /* MockData.swift in Sources */,
 				8A1000372F81491000000037 /* HomeViewModel.swift in Sources */,
 				8A10003B2F8149100000003B /* BusinessHomeView.swift in Sources */,
+				7C8E4F482F93AD1B006E70AD /* StoresListView.swift in Sources */,
+				7C8E4F432F939561006E70AD /* OrderDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

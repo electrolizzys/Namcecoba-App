@@ -87,6 +87,7 @@ struct BusinessHomeView: View {
                 ForEach(appState.businessBaskets) { basket in
                     BusinessBasketCard(basket: basket) {
                         withAnimation { appState.removeBasket(basket) }
+                        Task { try? await BasketService.shared.deleteBasket(id: basket.id) }
                     }
                 }
             }
@@ -278,6 +279,23 @@ struct AddBasketForm: View {
             distanceKm: nil
         )
         appState.publishBasket(basket)
+
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime]
+
+        let insert = BasketService.BasketInsert(
+            storeId: store.id,
+            title: title,
+            description: description,
+            originalPrice: NSDecimalNumber(decimal: origPrice).doubleValue,
+            discountedPrice: NSDecimalNumber(decimal: discPrice).doubleValue,
+            pickupStartTime: isoFormatter.string(from: pickupStart),
+            pickupEndTime: isoFormatter.string(from: pickupEnd),
+            itemsDescription: itemsDescription,
+            remainingCount: availableCount
+        )
+        Task { try? await BasketService.shared.createBasket(insert) }
+
         dismiss()
     }
 }
