@@ -165,6 +165,7 @@ final class AppState {
 
     var businessStore: Store = MockData.stores[0]
     var businessBaskets: [Basket] = MockData.businessBaskets
+    var storeOrders: [Order] = []
 
     init() {
         frequentStoreIds = Self.loadFavourites()
@@ -182,17 +183,44 @@ final class AppState {
         return Set(strings.compactMap { UUID(uuidString: $0) })
     }
 
+    struct ProfileRow: Decodable {
+        let id: UUID
+        let username: String?
+        let email: String?
+        let role: String
+        let storeId: UUID?
+
+        enum CodingKeys: String, CodingKey {
+            case id, username, email, role
+            case storeId = "store_id"
+        }
+    }
+
     @MainActor
     func loadUserInfo() async {
         do {
             let user = try await supabase.auth.session.user
             userId = user.id
             userEmail = user.email ?? ""
-            username = user.userMetadata["username"]?.value as? String ?? ""
 
-            if let role = user.userMetadata["role"]?.value as? String,
-               role == "business" {
+            let profile: ProfileRow = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: user.id)
+                .single()
+                .execute()
+                .value
+
+            username = profile.username ?? ""
+
+            if profile.role == "venue", let storeId = profile.storeId {
                 currentRole = .business
+                if let store = await StoreService.shared.fetchStore(id: storeId) {
+                    businessStore = store
+                }
+                businessBaskets = await BasketService.shared.fetchBusinessBaskets(storeId: storeId)
+            } else {
+                currentRole = .customer
             }
         } catch {
             print("⚠️ Could not load user info: \(error.localizedDescription)")
@@ -203,6 +231,10 @@ final class AppState {
     func loadOrders() async {
         guard let userId else { return }
         orders = await OrderService.shared.fetchOrders(userId: userId)
+
+        if currentRole == .business {
+            storeOrders = await OrderService.shared.fetchStoreOrders(storeId: businessStore.id)
+        }
     }
 
     func isFavourite(_ storeId: UUID) -> Bool {

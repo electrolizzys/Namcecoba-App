@@ -51,14 +51,6 @@ struct ProfileView: View {
                     }
                 }
 
-                Section("Demo Controls") {
-                    Picker("Role", selection: $state.currentRole) {
-                        Text("Customer").tag(UserRole.customer)
-                        Text("Business").tag(UserRole.business)
-                    }
-                    .pickerStyle(.segmented)
-                }
-
                 Section("Support") {
                     Label("Help Center", systemImage: "questionmark.circle")
                     Label("About Namtsetsoba", systemImage: "info.circle")

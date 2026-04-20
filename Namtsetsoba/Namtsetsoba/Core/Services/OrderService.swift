@@ -55,6 +55,70 @@ final class OrderService {
         }
     }
 
+    func fetchStoreOrders(storeId: UUID) async -> [Order] {
+        do {
+            let basketRows: [BasketService.BasketRow] = try await db
+                .from("baskets")
+                .select()
+                .eq("store_id", value: storeId)
+                .execute()
+                .value
+
+            let basketIds = basketRows.map(\.id)
+            guard !basketIds.isEmpty else { return [] }
+
+            let storeRows: [BasketService.StoreRow] = try await db
+                .from("stores")
+                .select()
+                .eq("id", value: storeId)
+                .execute()
+                .value
+
+            guard let store = storeRows.first?.toStore() else { return [] }
+            let basketMap = Dictionary(uniqueKeysWithValues: basketRows.map {
+                ($0.id, $0.toBasket(store: store))
+            })
+
+            let rows: [OrderRow] = try await db
+                .from("orders")
+                .select()
+                .in("basket_id", values: basketIds.map(\.uuidString))
+                .order("created_at", ascending: false)
+                .execute()
+                .value
+
+            return rows.compactMap { row in
+                guard let basket = basketMap[row.basketId] else { return nil }
+
+                let isoFormatter = ISO8601DateFormatter()
+                isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                let date = isoFormatter.date(from: row.createdAt)
+                    ?? ISO8601DateFormatter().date(from: row.createdAt)
+                    ?? Date()
+
+                return Order(
+                    id: row.id,
+                    basket: basket,
+                    status: OrderStatus(rawValue: row.status) ?? .confirmed,
+                    pickupCode: row.pickupCode,
+                    orderDate: date,
+                    totalPaid: Decimal(row.totalPaid)
+                )
+            }
+        } catch {
+            print("⚠️ Failed to fetch store orders: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    func updateOrderStatus(orderId: UUID, status: String) async throws {
+        try await db
+            .from("orders")
+            .update(["status": status])
+            .eq("id", value: orderId)
+            .execute()
+    }
+
     func fetchOrders(userId: UUID) async -> [Order] {
         do {
             let rows: [OrderRow] = try await db
