@@ -173,14 +173,24 @@ struct CheckoutView: View {
             let order = appState.placeOrder(for: basket)
 
             if let userId = appState.userId {
-                try? await OrderService.shared.createOrder(
-                    userId: userId,
-                    basketId: basket.id,
-                    totalPaid: basket.discountedPrice,
-                    pickupCode: order.pickupCode
-                )
-                try? await BasketService.shared.decrementRemainingCount(basketId: basket.id)
+                do {
+                    try await OrderService.shared.createOrder(
+                        userId: userId,
+                        basketId: basket.id,
+                        totalPaid: basket.discountedPrice,
+                        pickupCode: order.pickupCode
+                    )
+                } catch {
+                    print("⚠️ Failed to create order in Supabase: \(error)")
+                }
+                do {
+                    try await BasketService.shared.decrementRemainingCount(basketId: basket.id)
+                } catch {
+                    print("⚠️ Failed to decrement basket count: \(error)")
+                }
             }
+
+            appState.triggerBasketRefresh()
 
             withAnimation {
                 completedOrder = order

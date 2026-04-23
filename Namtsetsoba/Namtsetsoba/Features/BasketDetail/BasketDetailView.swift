@@ -4,6 +4,7 @@ import MapKit
 struct BasketDetailView: View {
     let basket: Basket
     @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
     @State private var showCheckout = false
     @State private var showFullMap = false
 
@@ -18,7 +19,9 @@ struct BasketDetailView: View {
         .safeAreaInset(edge: .bottom) { orderBar }
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showCheckout) {
+        .sheet(isPresented: $showCheckout, onDismiss: {
+            dismiss()
+        }) {
             CheckoutView(basket: basket)
         }
     }

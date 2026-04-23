@@ -129,7 +129,7 @@ final class OrderService {
                 .execute()
                 .value
 
-            let baskets = await BasketService.shared.fetchAvailableBaskets()
+            let baskets = await BasketService.shared.fetchAllBaskets()
             let basketMap = Dictionary(uniqueKeysWithValues: baskets.map { ($0.id, $0) })
 
             return rows.compactMap { row in

@@ -249,6 +249,12 @@ final class AppState {
         }
     }
 
+    var basketRefreshTrigger = false
+
+    func triggerBasketRefresh() {
+        basketRefreshTrigger.toggle()
+    }
+
     func placeOrder(for basket: Basket) -> Order {
         let code = String(format: "%04d", Int.random(in: 1000...9999))
         let order = Order(

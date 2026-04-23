@@ -111,6 +111,32 @@ final class BasketService {
         }
     }
 
+    func fetchAllBaskets() async -> [Basket] {
+        do {
+            let storeRows: [StoreRow] = try await db
+                .from("stores")
+                .select()
+                .execute()
+                .value
+
+            let storeMap = Dictionary(uniqueKeysWithValues: storeRows.map { ($0.id, $0.toStore()) })
+
+            let basketRows: [BasketRow] = try await db
+                .from("baskets")
+                .select()
+                .execute()
+                .value
+
+            return basketRows.compactMap { row in
+                guard let store = storeMap[row.storeId] else { return nil }
+                return row.toBasket(store: store)
+            }
+        } catch {
+            print("⚠️ Supabase all baskets fetch failed: \(error)")
+            return []
+        }
+    }
+
     // MARK: - Customer: browse available baskets
 
     func fetchAvailableBaskets() async -> [Basket] {
@@ -158,6 +184,7 @@ final class BasketService {
                 .from("baskets")
                 .select()
                 .eq("store_id", value: storeId)
+                .gt("remaining_count", value: 0)
                 .order("created_at", ascending: false)
                 .execute()
                 .value
@@ -185,7 +212,18 @@ final class BasketService {
     }
 
     func decrementRemainingCount(basketId: UUID) async throws {
-        try await db.rpc("decrement_basket_count", params: ["basket_uuid": basketId])
+        let row: BasketRow = try await db
+            .from("baskets")
+            .select()
+            .eq("id", value: basketId)
+            .single()
+            .execute()
+            .value
+        let newCount = max(0, row.remainingCount - 1)
+        try await db
+            .from("baskets")
+            .update(["remaining_count": newCount])
+            .eq("id", value: basketId)
             .execute()
     }
 }

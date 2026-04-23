@@ -64,6 +64,9 @@ struct HomeView: View {
             .onChange(of: appState.frequentStoreIds) { _, newValue in
                 viewModel.frequentStoreIds = newValue
             }
+            .onChange(of: appState.basketRefreshTrigger) { _, _ in
+                Task { await viewModel.loadBaskets() }
+            }
             .navigationDestination(for: Basket.self) { basket in
                 BasketDetailView(basket: basket)
             }

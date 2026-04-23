@@ -16,10 +16,20 @@ struct BusinessHomeView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("My Products")
+            .task {
+                await reloadBusinessBaskets()
+            }
+            .refreshable {
+                await reloadBusinessBaskets()
+            }
             .sheet(isPresented: $showAddBasket) {
                 AddBasketForm(store: appState.businessStore)
             }
         }
+    }
+
+    private func reloadBusinessBaskets() async {
+        appState.businessBaskets = await BasketService.shared.fetchBusinessBaskets(storeId: appState.businessStore.id)
     }
 
     // MARK: - Add Basket Button
