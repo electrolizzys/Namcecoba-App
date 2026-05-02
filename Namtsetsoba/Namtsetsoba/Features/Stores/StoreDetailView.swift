@@ -33,12 +33,13 @@ struct StoreDetailView: View {
 
     private var heroHeader: some View {
         ZStack(alignment: .bottomLeading) {
-            DesignTokens.gradientForCategory(store.category)
-                .frame(height: 180)
+            StoreBannerImage(store: store, height: 180)
                 .overlay {
-                    Text(store.category.icon)
-                        .font(.system(size: 80))
-                        .opacity(0.2)
+                    LinearGradient(
+                        colors: [.clear, .black.opacity(0.55)],
+                        startPoint: .center,
+                        endPoint: .bottom
+                    )
                 }
 
             VStack(alignment: .leading, spacing: 6) {

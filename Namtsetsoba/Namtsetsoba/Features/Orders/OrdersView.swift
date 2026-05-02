@@ -2,6 +2,8 @@ import SwiftUI
 
 struct OrdersView: View {
     @Environment(AppState.self) private var appState
+    @State private var searchCode = ""
+    @State private var isMarkingAll = false
 
     var body: some View {
         NavigationStack {
@@ -13,7 +15,10 @@ struct OrdersView: View {
                 }
             }
             .navigationTitle(appState.currentRole == .business ? "Incoming Orders" : "Orders")
-            .refreshable { await appState.loadOrders() }
+            .refreshable {
+                await appState.loadOrders()
+                await appState.loadNotifications()
+            }
         }
     }
 
@@ -82,14 +87,47 @@ struct OrdersView: View {
         let past = appState.storeOrders.filter {
             $0.status == .pickedUp || $0.status == .cancelled
         }
+        let confirmedOnly = current.filter { $0.status == .confirmed }
+
+        let filteredCurrent: [Order] = {
+            guard !searchCode.isEmpty else { return current }
+            return current.filter {
+                $0.pickupCode.localizedCaseInsensitiveContains(searchCode)
+            }
+        }()
 
         return List {
             if !current.isEmpty {
-                Section("Current Orders") {
-                    ForEach(current) { order in
+                Section {
+                    ForEach(filteredCurrent) { order in
                         NavigationLink(value: order) {
                             OrderRow(order: order, isStoreView: true)
                         }
+                    }
+                } header: {
+                    Text(searchCode.isEmpty ? "Current Orders (\(current.count))" : "Current Orders")
+                } footer: {
+                    if searchCode.isEmpty, !confirmedOnly.isEmpty {
+                        Button {
+                            markAllAsReady(confirmedOnly)
+                        } label: {
+                            HStack {
+                                if isMarkingAll {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "checkmark.circle.fill")
+                                }
+                                Text(confirmedOnly.count == 1 ? "Mark as Ready" : "Mark All as Ready (\(confirmedOnly.count))")
+                            }
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(DesignTokens.primaryGreen, in: RoundedRectangle(cornerRadius: 10))
+                        }
+                        .disabled(isMarkingAll)
+                        .padding(.top, 8)
                     }
                 }
             }
@@ -104,8 +142,25 @@ struct OrdersView: View {
                 }
             }
         }
+        .searchable(text: $searchCode, prompt: "Search by pickup code")
         .navigationDestination(for: Order.self) { order in
             OrderDetailView(order: order)
+        }
+    }
+
+    private func markAllAsReady(_ orders: [Order]) {
+        isMarkingAll = true
+        Task {
+            for order in orders {
+                try? await OrderService.shared.updateOrderStatus(
+                    orderId: order.id,
+                    status: OrderStatus.readyForPickup.rawValue
+                )
+                if let idx = appState.storeOrders.firstIndex(where: { $0.id == order.id }) {
+                    appState.storeOrders[idx].status = .readyForPickup
+                }
+            }
+            isMarkingAll = false
         }
     }
 

@@ -19,11 +19,13 @@ final class BasketService {
         let rating: Double
         let openTime: String?
         let closeTime: String?
+        let logoURL: String?
 
         enum CodingKeys: String, CodingKey {
             case id, name, address, latitude, longitude, category, rating
             case openTime = "open_time"
             case closeTime = "close_time"
+            case logoURL = "logo_url"
         }
 
         func toStore() -> Store {
@@ -33,7 +35,8 @@ final class BasketService {
                 category: ProductCategory(rawValue: category) ?? .restaurant,
                 rating: rating,
                 openTime: openTime ?? "09:00",
-                closeTime: closeTime ?? "21:00"
+                closeTime: closeTime ?? "21:00",
+                logoURL: logoURL
             )
         }
     }
@@ -102,6 +105,27 @@ final class BasketService {
         enum CodingKeys: String, CodingKey {
             case title, description
             case storeId = "store_id"
+            case originalPrice = "original_price"
+            case discountedPrice = "discounted_price"
+            case pickupStartTime = "pickup_start_time"
+            case pickupEndTime = "pickup_end_time"
+            case itemsDescription = "items_description"
+            case remainingCount = "remaining_count"
+        }
+    }
+
+    struct BasketUpdate: Encodable {
+        let title: String
+        let description: String
+        let originalPrice: Double
+        let discountedPrice: Double
+        let pickupStartTime: String
+        let pickupEndTime: String
+        let itemsDescription: String
+        let remainingCount: Int
+
+        enum CodingKeys: String, CodingKey {
+            case title, description
             case originalPrice = "original_price"
             case discountedPrice = "discounted_price"
             case pickupStartTime = "pickup_start_time"
@@ -191,8 +215,8 @@ final class BasketService {
 
             return basketRows.map { $0.toBasket(store: store) }
         } catch {
-            print("⚠️ Supabase business baskets fetch failed, using mock data: \(error)")
-            return MockData.businessBaskets
+            print("⚠️ Supabase business baskets fetch failed: \(error.localizedDescription)")
+            return []
         }
     }
 
@@ -207,6 +231,14 @@ final class BasketService {
         try await db
             .from("baskets")
             .delete()
+            .eq("id", value: id)
+            .execute()
+    }
+
+    func updateBasket(id: UUID, update: BasketUpdate) async throws {
+        try await db
+            .from("baskets")
+            .update(update)
             .eq("id", value: id)
             .execute()
     }

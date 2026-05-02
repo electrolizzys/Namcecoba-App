@@ -197,13 +197,7 @@ struct StoreListCard: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: DesignTokens.smallCornerRadius)
-                    .fill(DesignTokens.gradientForCategory(store.category))
-                    .frame(width: 60, height: 60)
-                Text(store.category.icon)
-                    .font(.title2)
-            }
+            StoreThumbnailView(store: store, size: 60)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {

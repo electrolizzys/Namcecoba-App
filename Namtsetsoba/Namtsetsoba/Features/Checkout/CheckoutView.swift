@@ -6,6 +6,7 @@ struct CheckoutView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isProcessing = false
     @State private var completedOrder: Order?
+    @State private var checkoutError: String?
 
     var body: some View {
         NavigationStack {
@@ -23,6 +24,16 @@ struct CheckoutView: View {
                     if completedOrder == nil {
                         Button("Cancel") { dismiss() }
                     }
+                }
+            }
+            .alert("Checkout failed", isPresented: Binding(
+                get: { checkoutError != nil },
+                set: { if !$0 { checkoutError = nil } }
+            )) {
+                Button("OK", role: .cancel) { checkoutError = nil }
+            } message: {
+                if let checkoutError {
+                    Text(checkoutError)
                 }
             }
         }
@@ -168,32 +179,44 @@ struct CheckoutView: View {
 
     private func processPayment() {
         isProcessing = true
-        Task {
+        checkoutError = nil
+        Task { @MainActor in
             try? await Task.sleep(for: .seconds(1.5))
-            let order = appState.placeOrder(for: basket)
 
-            if let userId = appState.userId {
-                do {
-                    try await OrderService.shared.createOrder(
-                        userId: userId,
-                        basketId: basket.id,
-                        totalPaid: basket.discountedPrice,
-                        pickupCode: order.pickupCode
-                    )
-                } catch {
-                    print("⚠️ Failed to create order in Supabase: \(error)")
-                }
-                do {
-                    try await BasketService.shared.decrementRemainingCount(basketId: basket.id)
-                } catch {
-                    print("⚠️ Failed to decrement basket count: \(error)")
-                }
+            guard let userId = appState.userId else {
+                checkoutError = "Not logged in."
+                isProcessing = false
+                return
             }
 
-            appState.triggerBasketRefresh()
+            let pickupCode = String(format: "%04d", Int.random(in: 1000...9999))
 
-            withAnimation {
-                completedOrder = order
+            do {
+                try await OrderService.shared.createOrder(
+                    userId: userId,
+                    basketId: basket.id,
+                    totalPaid: basket.discountedPrice,
+                    pickupCode: pickupCode
+                )
+                try await BasketService.shared.decrementRemainingCount(basketId: basket.id)
+                appState.frequentStoreIds.insert(basket.store.id)
+                await appState.loadOrders()
+                await appState.loadNotifications()
+                appState.triggerBasketRefresh()
+
+                guard let synced = appState.orders.first(where: { $0.pickupCode == pickupCode }) else {
+                    checkoutError = "Payment recorded but order could not be loaded. Pull to refresh on Orders."
+                    isProcessing = false
+                    return
+                }
+
+                withAnimation {
+                    completedOrder = synced
+                    isProcessing = false
+                }
+            } catch {
+                checkoutError = error.localizedDescription
+                print("⚠️ Checkout failed: \(error)")
                 isProcessing = false
             }
         }

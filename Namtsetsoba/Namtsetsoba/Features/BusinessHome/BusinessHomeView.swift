@@ -3,6 +3,7 @@ import SwiftUI
 struct BusinessHomeView: View {
     @Environment(AppState.self) private var appState
     @State private var showAddBasket = false
+    @State private var editingBasket: Basket?
 
     var body: some View {
         NavigationStack {
@@ -22,14 +23,26 @@ struct BusinessHomeView: View {
             .refreshable {
                 await reloadBusinessBaskets()
             }
-            .sheet(isPresented: $showAddBasket) {
-                AddBasketForm(store: appState.businessStore)
+            .sheet(isPresented: $showAddBasket, onDismiss: {
+                Task { await reloadBusinessBaskets() }
+            }) {
+                AddBasketForm(store: appState.businessStore, editingBasket: nil)
+            }
+            .sheet(item: $editingBasket, onDismiss: {
+                Task { await reloadBusinessBaskets() }
+            }) { basket in
+                AddBasketForm(store: appState.businessStore, editingBasket: basket)
+            }
+            .onChange(of: appState.businessStore.logoURL) { _, _ in
+                Task { await reloadBusinessBaskets() }
             }
         }
     }
 
+    @MainActor
     private func reloadBusinessBaskets() async {
-        appState.businessBaskets = await BasketService.shared.fetchBusinessBaskets(storeId: appState.businessStore.id)
+        let baskets = await BasketService.shared.fetchBusinessBaskets(storeId: appState.businessStore.id)
+        appState.businessBaskets = baskets
     }
 
     // MARK: - Add Basket Button
@@ -95,10 +108,22 @@ struct BusinessHomeView: View {
                 .padding(.vertical, 40)
             } else {
                 ForEach(appState.businessBaskets) { basket in
-                    BusinessBasketCard(basket: basket) {
-                        withAnimation { appState.removeBasket(basket) }
-                        Task { try? await BasketService.shared.deleteBasket(id: basket.id) }
-                    }
+                    BusinessBasketCard(
+                        basket: basket,
+                        onEdit: { editingBasket = basket },
+                        onRemove: {
+                            Task {
+                                do {
+                                    try await BasketService.shared.deleteBasket(id: basket.id)
+                                    await MainActor.run {
+                                        withAnimation { appState.removeBasket(basket) }
+                                    }
+                                } catch {
+                                    print("⚠️ Delete basket failed: \(error.localizedDescription)")
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -108,19 +133,21 @@ struct BusinessHomeView: View {
 // MARK: - Business Basket Card
 
 struct BusinessBasketCard: View {
+    @Environment(AppState.self) private var appState
     let basket: Basket
+    let onEdit: () -> Void
     let onRemove: () -> Void
+
+    private var displayStore: Store {
+        guard basket.store.id == appState.businessStore.id else { return basket.store }
+        return appState.businessStore
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: DesignTokens.smallCornerRadius)
-                        .fill(DesignTokens.gradientForCategory(basket.store.category))
-                        .frame(width: 56, height: 56)
-                    Text(basket.store.category.icon)
-                        .font(.title2)
-                }
+                StoreThumbnailView(store: displayStore, size: 56)
+                    .id("\(displayStore.id.uuidString)-\(displayStore.logoURL ?? "")")
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(basket.title)
@@ -134,7 +161,14 @@ struct BusinessBasketCard: View {
                 Spacer()
 
                 Menu {
-                    Button(role: .destructive) { onRemove() } label: {
+                    Button {
+                        onEdit()
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    Button(role: .destructive) {
+                        onRemove()
+                    } label: {
                         Label("Remove", systemImage: "trash")
                     }
                 } label: {
@@ -197,6 +231,7 @@ struct BusinessBasketCard: View {
 
 struct AddBasketForm: View {
     let store: Store
+    var editingBasket: Basket?
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
@@ -209,11 +244,13 @@ struct AddBasketForm: View {
     @State private var pickupEnd = Date().addingTimeInterval(3600 * 3)
     @State private var availableCount = 5
 
+    private var isEditing: Bool { editingBasket != nil }
+
     private var isValid: Bool {
         !title.isEmpty &&
         !itemsDescription.isEmpty &&
-        Decimal(string: originalPrice) != nil &&
-        Decimal(string: discountedPrice) != nil
+        Decimal(string: originalPrice.replacingOccurrences(of: ",", with: ".")) != nil &&
+        Decimal(string: discountedPrice.replacingOccurrences(of: ",", with: ".")) != nil
     }
 
     var body: some View {
@@ -253,60 +290,94 @@ struct AddBasketForm: View {
                 }
 
                 Section("Availability") {
-                    Stepper("Available baskets: \(availableCount)", value: $availableCount, in: 1...50)
+                    Stepper(
+                        isEditing ? "Remaining for sale: \(availableCount)" : "Available baskets: \(availableCount)",
+                        value: $availableCount,
+                        in: isEditing ? 0...50 : 1...50
+                    )
                 }
             }
-            .navigationTitle("New Basket")
+            .navigationTitle(isEditing ? "Edit Basket" : "New Basket")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Publish") { publishBasket() }
+                    Button(isEditing ? "Save" : "Publish") { saveBasket() }
                         .bold()
                         .disabled(!isValid)
                 }
             }
+            .onAppear {
+                populateFromEditingBasketIfNeeded()
+            }
         }
     }
 
-    private func publishBasket() {
-        guard let origPrice = Decimal(string: originalPrice),
-              let discPrice = Decimal(string: discountedPrice) else { return }
+    private func populateFromEditingBasketIfNeeded() {
+        guard let b = editingBasket else { return }
+        title = b.title
+        description = b.description
+        itemsDescription = b.itemsDescription
+        originalPrice = Self.priceFieldString(b.originalPrice)
+        discountedPrice = Self.priceFieldString(b.discountedPrice)
+        pickupStart = b.pickupStartTime
+        pickupEnd = b.pickupEndTime
+        availableCount = b.remainingCount
+    }
 
-        let basket = Basket(
-            id: UUID(),
-            store: store,
-            title: title,
-            description: description,
-            originalPrice: origPrice,
-            discountedPrice: discPrice,
-            pickupStartTime: pickupStart,
-            pickupEndTime: pickupEnd,
-            itemsDescription: itemsDescription,
-            remainingCount: availableCount,
-            distanceKm: nil
-        )
-        appState.publishBasket(basket)
+    private static func priceFieldString(_ amount: Decimal) -> String {
+        String(format: "%.2f", NSDecimalNumber(decimal: amount).doubleValue)
+    }
 
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime]
+    private func parsedDecimals() -> (Decimal, Decimal)? {
+        let origStr = originalPrice.replacingOccurrences(of: ",", with: ".")
+        let discStr = discountedPrice.replacingOccurrences(of: ",", with: ".")
+        guard let o = Decimal(string: origStr), let d = Decimal(string: discStr) else { return nil }
+        return (o, d)
+    }
 
-        let insert = BasketService.BasketInsert(
-            storeId: store.id,
-            title: title,
-            description: description,
-            originalPrice: NSDecimalNumber(decimal: origPrice).doubleValue,
-            discountedPrice: NSDecimalNumber(decimal: discPrice).doubleValue,
-            pickupStartTime: isoFormatter.string(from: pickupStart),
-            pickupEndTime: isoFormatter.string(from: pickupEnd),
-            itemsDescription: itemsDescription,
-            remainingCount: availableCount
-        )
-        Task { try? await BasketService.shared.createBasket(insert) }
+    private func saveBasket() {
+        guard let (origPrice, discPrice) = parsedDecimals() else { return }
 
-        dismiss()
+        Task { @MainActor in
+            let isoFormatter = ISO8601DateFormatter()
+            isoFormatter.formatOptions = [.withInternetDateTime]
+
+            do {
+                if let existing = editingBasket {
+                    let upd = BasketService.BasketUpdate(
+                        title: title,
+                        description: description,
+                        originalPrice: NSDecimalNumber(decimal: origPrice).doubleValue,
+                        discountedPrice: NSDecimalNumber(decimal: discPrice).doubleValue,
+                        pickupStartTime: isoFormatter.string(from: pickupStart),
+                        pickupEndTime: isoFormatter.string(from: pickupEnd),
+                        itemsDescription: itemsDescription,
+                        remainingCount: max(0, availableCount)
+                    )
+                    try await BasketService.shared.updateBasket(id: existing.id, update: upd)
+                } else {
+                    let insert = BasketService.BasketInsert(
+                        storeId: store.id,
+                        title: title,
+                        description: description,
+                        originalPrice: NSDecimalNumber(decimal: origPrice).doubleValue,
+                        discountedPrice: NSDecimalNumber(decimal: discPrice).doubleValue,
+                        pickupStartTime: isoFormatter.string(from: pickupStart),
+                        pickupEndTime: isoFormatter.string(from: pickupEnd),
+                        itemsDescription: itemsDescription,
+                        remainingCount: max(1, availableCount)
+                    )
+                    try await BasketService.shared.createBasket(insert)
+                }
+                appState.triggerBasketRefresh()
+                dismiss()
+            } catch {
+                print("⚠️ Save basket failed: \(error.localizedDescription)")
+            }
+        }
     }
 }
 

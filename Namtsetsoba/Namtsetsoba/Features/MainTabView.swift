@@ -1,10 +1,35 @@
 import SwiftUI
 
+@Observable
+final class MainTabSelection {
+    var selectedTab: Int = 0
+
+    func openOrders(isBusiness: Bool) {
+        selectedTab = isBusiness ? 1 : 2
+    }
+
+    func openMyProductsTab() {
+        selectedTab = 0
+    }
+}
+
+private struct MainTabSelectionKey: EnvironmentKey {
+    static let defaultValue: MainTabSelection? = nil
+}
+
+extension EnvironmentValues {
+    var mainTabSelection: MainTabSelection? {
+        get { self[MainTabSelectionKey.self] }
+        set { self[MainTabSelectionKey.self] = newValue }
+    }
+}
+
 struct MainTabView: View {
+    @Bindable var mainTabSelection: MainTabSelection
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        TabView {
+        TabView(selection: $mainTabSelection.selectedTab) {
             Group {
                 if appState.currentRole == .business {
                     BusinessHomeView()
@@ -18,71 +43,44 @@ struct MainTabView: View {
                     systemImage: appState.currentRole == .business ? "storefront.fill" : "leaf.fill"
                 )
             }
+            .tag(0)
 
             if appState.currentRole != .business {
                 StoresListView()
                     .tabItem { Label("Stores", systemImage: "storefront.fill") }
+                    .tag(1)
             }
 
             OrdersView()
                 .tabItem { Label("Orders", systemImage: "bag.fill") }
+                .tag(appState.currentRole == .business ? 1 : 2)
 
-            NotificationsTab()
+            NotificationsView()
                 .tabItem { Label("Notifications", systemImage: "bell.fill") }
+                .badge(appState.unreadCount)
+                .tag(appState.currentRole == .business ? 2 : 3)
 
             ProfileView()
                 .tabItem { Label("Profile", systemImage: "person.fill") }
+                .tag(appState.currentRole == .business ? 3 : 4)
         }
         .tint(DesignTokens.primaryGreen)
-    }
-}
-
-
-private struct NotificationsTab: View {
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                Spacer()
-                Image(systemName: "bell.slash")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.secondary)
-                Text("No notifications yet")
-                    .font(.headline)
-                Text("You'll see updates about your orders here")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("Notifications")
+        .onChange(of: appState.currentRole) { _, _ in
+            mainTabSelection.selectedTab = 0
         }
     }
 }
 
-private struct ChatTab: View {
+private struct MainTabViewPreviewHost: View {
+    @State private var tabSelection = MainTabSelection()
+
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                Spacer()
-                Image(systemName: "message")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.secondary)
-                Text("No messages yet")
-                    .font(.headline)
-                Text("Chat with stores after placing an order")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("Chat")
-        }
+        MainTabView(mainTabSelection: tabSelection)
+            .environment(AppState())
+            .environment(\.mainTabSelection, tabSelection)
     }
 }
 
 #Preview {
-    MainTabView()
-        .environment(AppState())
+    MainTabViewPreviewHost()
 }

@@ -30,12 +30,13 @@ struct BasketDetailView: View {
 
     private var heroHeader: some View {
         ZStack(alignment: .bottomLeading) {
-            DesignTokens.gradientForCategory(basket.store.category)
-                .frame(height: 200)
+            StoreBannerImage(store: basket.store, height: 200)
                 .overlay {
-                    Text(basket.store.category.icon)
-                        .font(.system(size: 80))
-                        .opacity(0.2)
+                    LinearGradient(
+                        colors: [.clear, .black.opacity(0.5)],
+                        startPoint: .center,
+                        endPoint: .bottom
+                    )
                 }
 
             VStack(alignment: .leading, spacing: 4) {

@@ -3,15 +3,17 @@ import SwiftUI
 struct ContentView: View {
     @State private var appState = AppState()
     @State private var authViewModel = AuthViewModel()
+    @State private var mainTabSelection = MainTabSelection()
     private var locationManager = LocationManager.shared
 
     var body: some View {
         Group {
             if authViewModel.isLoggedIn {
-                MainTabView()
+                MainTabView(mainTabSelection: mainTabSelection)
                     .environment(appState)
                     .environment(authViewModel)
                     .environment(locationManager)
+                    .environment(\.mainTabSelection, mainTabSelection)
             } else {
                 AuthView(viewModel: authViewModel)
             }
@@ -25,6 +27,7 @@ struct ContentView: View {
                 Task {
                     await appState.loadUserInfo()
                     await appState.loadOrders()
+                    await appState.loadNotifications()
                 }
             }
         }

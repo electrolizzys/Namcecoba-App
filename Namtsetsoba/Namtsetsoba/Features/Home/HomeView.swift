@@ -212,12 +212,13 @@ struct BasketCard: View {
 
     private var headerImage: some View {
         ZStack {
-            DesignTokens.gradientForCategory(basket.store.category)
-                .frame(height: 130)
+            StoreBannerImage(store: basket.store, height: 130)
                 .overlay {
-                    Text(basket.store.category.icon)
-                        .font(.system(size: 56))
-                        .opacity(0.25)
+                    LinearGradient(
+                        colors: [.clear, .black.opacity(0.4)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 }
 
             VStack {
