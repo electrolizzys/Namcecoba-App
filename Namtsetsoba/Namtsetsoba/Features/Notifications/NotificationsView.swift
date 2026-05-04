@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NotificationsView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.mainTabSelection) private var mainTabSelection
 
     var body: some View {
         NavigationStack {
@@ -38,8 +39,16 @@ struct NotificationsView: View {
                 NotificationRow(notification: notification)
                     .listRowBackground(notification.isRead ? Color.clear : DesignTokens.primaryGreen.opacity(0.05))
                     .onTapGesture {
-                        if !notification.isRead {
-                            Task { await appState.markNotificationRead(notification) }
+                        Task {
+                            if !notification.isRead {
+                                await appState.markNotificationRead(notification)
+                            }
+
+                            guard notification.type == .order,
+                                  let orderId = notification.referenceId else { return }
+
+                            await appState.queueOrderNavigation(to: orderId)
+                            mainTabSelection?.openOrders(isBusiness: appState.currentRole == .business)
                         }
                     }
             }

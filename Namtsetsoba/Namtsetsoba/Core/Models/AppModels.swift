@@ -250,6 +250,7 @@ final class AppState {
 
     var notifications: [AppNotification] = []
     var unreadCount: Int { notifications.filter { !$0.isRead }.count }
+    var pendingOrderNavigationId: UUID?
 
     var businessStore: Store = MockData.stores[0]
     var businessBaskets: [Basket] = MockData.businessBaskets
@@ -349,6 +350,11 @@ final class AppState {
         for i in notifications.indices {
             notifications[i].isRead = true
         }
+    }
+
+    @MainActor
+    func queueOrderNavigation(to orderId: UUID) {
+        pendingOrderNavigationId = orderId
     }
 
     func isFavourite(_ storeId: UUID) -> Bool {

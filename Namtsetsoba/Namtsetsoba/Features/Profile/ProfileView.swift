@@ -110,6 +110,14 @@ struct ProfileView: View {
                     }
                 }
 
+                Section("Account Security") {
+                    NavigationLink {
+                        ChangePasswordView()
+                    } label: {
+                        Label("Change Password", systemImage: "lock.rotation")
+                    }
+                }
+
                 Section {
                     Button(role: .destructive) {
                         authViewModel.signOut()
@@ -451,6 +459,111 @@ struct EditProfileView: View {
     }
 }
 
+// MARK: - Change Password
+
+struct ChangePasswordView: View {
+    @Environment(AppState.self) private var appState
+    @State private var currentPassword = ""
+    @State private var newPassword = ""
+    @State private var confirmNewPassword = ""
+    @State private var isChangingPassword = false
+    @State private var passwordMessage: String?
+    @State private var passwordMessageIsError = false
+
+    var body: some View {
+        Form {
+            Section("Change password") {
+                SecureField("Current password", text: $currentPassword)
+                    .textContentType(.oneTimeCode)
+                SecureField("New password", text: $newPassword)
+                    .textContentType(.newPassword)
+                SecureField("Confirm new password", text: $confirmNewPassword)
+                    .textContentType(.newPassword)
+            }
+
+            Section {
+                Button {
+                    Task { await changePassword() }
+                } label: {
+                    if isChangingPassword {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Text("Update Password")
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .disabled(isChangingPassword)
+            }
+
+            if let passwordMessage {
+                Section {
+                    Text(passwordMessage)
+                        .font(.caption)
+                        .foregroundStyle(passwordMessageIsError ? .red : .green)
+                }
+            }
+        }
+        .navigationTitle("Change Password")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @MainActor
+    private func changePassword() async {
+        passwordMessage = nil
+        passwordMessageIsError = false
+
+        let trimmedEmail = appState.userEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedEmail.isEmpty else {
+            passwordMessage = "Could not read your account email. Please sign out and back in."
+            passwordMessageIsError = true
+            return
+        }
+
+        guard !currentPassword.isEmpty else {
+            passwordMessage = "Please enter your current password."
+            passwordMessageIsError = true
+            return
+        }
+
+        guard newPassword.count >= 6 else {
+            passwordMessage = "New password must be at least 6 characters."
+            passwordMessageIsError = true
+            return
+        }
+
+        guard newPassword == confirmNewPassword else {
+            passwordMessage = "New password and confirmation do not match."
+            passwordMessageIsError = true
+            return
+        }
+
+        guard newPassword != currentPassword else {
+            passwordMessage = "New password must be different from current password."
+            passwordMessageIsError = true
+            return
+        }
+
+        isChangingPassword = true
+        defer { isChangingPassword = false }
+
+        do {
+            // Reauthenticate first so current password is verified before update.
+            try await supabase.auth.signIn(email: trimmedEmail, password: currentPassword)
+            try await supabase.auth.update(user: .init(password: newPassword))
+
+            currentPassword = ""
+            newPassword = ""
+            confirmNewPassword = ""
+            passwordMessage = "Password updated successfully."
+            passwordMessageIsError = false
+        } catch {
+            passwordMessage = "Could not change password: \(error.localizedDescription)"
+            passwordMessageIsError = true
+        }
+    }
+}
+
 #Preview {
     ProfileView()
         .environment(AppState())
@@ -461,4 +574,11 @@ struct EditProfileView: View {
 #Preview("Edit Profile") {
     EditProfileView()
         .environment(AppState())
+}
+
+#Preview("Change Password") {
+    NavigationStack {
+        ChangePasswordView()
+            .environment(AppState())
+    }
 }

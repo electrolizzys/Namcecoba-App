@@ -4,9 +4,10 @@ struct OrdersView: View {
     @Environment(AppState.self) private var appState
     @State private var searchCode = ""
     @State private var isMarkingAll = false
+    @State private var navigationPath: [Order] = []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             Group {
                 if appState.currentRole == .business {
                     storeOrdersContent
@@ -19,6 +20,12 @@ struct OrdersView: View {
                 await appState.loadOrders()
                 await appState.loadNotifications()
             }
+        }
+        .task {
+            await openPendingOrderIfNeeded()
+        }
+        .onChange(of: appState.pendingOrderNavigationId) { _, _ in
+            Task { await openPendingOrderIfNeeded() }
         }
     }
 
@@ -162,6 +169,29 @@ struct OrdersView: View {
             }
             isMarkingAll = false
         }
+    }
+
+    @MainActor
+    private func openPendingOrderIfNeeded() async {
+        guard let pendingId = appState.pendingOrderNavigationId else { return }
+
+        var targetOrder = ordersForCurrentRole.first(where: { $0.id == pendingId })
+        if targetOrder == nil {
+            await appState.loadOrders()
+            targetOrder = ordersForCurrentRole.first(where: { $0.id == pendingId })
+        }
+
+        guard let targetOrder else {
+            appState.pendingOrderNavigationId = nil
+            return
+        }
+
+        navigationPath = [targetOrder]
+        appState.pendingOrderNavigationId = nil
+    }
+
+    private var ordersForCurrentRole: [Order] {
+        appState.currentRole == .business ? appState.storeOrders : appState.orders
     }
 
     // MARK: - Empty State
