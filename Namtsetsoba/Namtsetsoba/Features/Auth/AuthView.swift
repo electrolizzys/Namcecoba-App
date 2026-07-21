@@ -31,34 +31,26 @@ struct AuthView: View {
                 .foregroundStyle(.secondary)
 
             VStack(spacing: 16) {
-                TextField("Email", text: $viewModel.email)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .textFieldStyle(.roundedBorder)
-
-                SecureField("Password", text: $viewModel.password)
-                    .textFieldStyle(.roundedBorder)
-                    .textContentType(.oneTimeCode)
+                AuthInputField(
+                    title: "Email",
+                    text: $viewModel.email,
+                    keyboard: .emailAddress
+                )
+                AuthInputField(
+                    title: "Password",
+                    text: $viewModel.password,
+                    secure: true,
+                    contentType: .oneTimeCode
+                )
             }
             .padding(.horizontal)
 
             messagesSection
 
-            Button {
+            AuthSubmitButton(title: "Sign In", isLoading: viewModel.isLoading) {
                 viewModel.login()
-            } label: {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Text("Sign In")
-                        .frame(maxWidth: .infinity)
-                }
             }
-            .buttonStyle(.borderedProminent)
             .padding(.horizontal)
-            .disabled(viewModel.isLoading)
 
             Button("Forgot Password?") {
                 viewModel.errorMessage = nil
@@ -89,43 +81,33 @@ struct AuthView: View {
                 .fontWeight(.bold)
 
             VStack(spacing: 16) {
-                TextField("Username", text: $viewModel.username)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .textFieldStyle(.roundedBorder)
-
-                TextField("Email", text: $viewModel.email)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .textFieldStyle(.roundedBorder)
-
-                SecureField("Password", text: $viewModel.password)
-                    .textFieldStyle(.roundedBorder)
-                    .textContentType(.oneTimeCode)
-
-                SecureField("Confirm Password", text: $viewModel.confirmPassword)
-                    .textFieldStyle(.roundedBorder)
-                    .textContentType(.oneTimeCode)
+                AuthInputField(title: "Username", text: $viewModel.username)
+                AuthInputField(
+                    title: "Email",
+                    text: $viewModel.email,
+                    keyboard: .emailAddress
+                )
+                AuthInputField(
+                    title: "Password",
+                    text: $viewModel.password,
+                    secure: true,
+                    contentType: .oneTimeCode
+                )
+                AuthInputField(
+                    title: "Confirm Password",
+                    text: $viewModel.confirmPassword,
+                    secure: true,
+                    contentType: .oneTimeCode
+                )
             }
             .padding(.horizontal)
 
             messagesSection
 
-            Button {
+            AuthSubmitButton(title: "Register", isLoading: viewModel.isLoading) {
                 viewModel.register()
-            } label: {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Text("Register")
-                        .frame(maxWidth: .infinity)
-                }
             }
-            .buttonStyle(.borderedProminent)
             .padding(.horizontal)
-            .disabled(viewModel.isLoading)
 
             Button("Already have an account? Sign In") {
                 viewModel.errorMessage = nil
@@ -154,29 +136,19 @@ struct AuthView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
-            TextField("Email", text: $viewModel.resetEmail)
-                .keyboardType(.emailAddress)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .textFieldStyle(.roundedBorder)
+            AuthInputField(
+                title: "Email",
+                text: $viewModel.resetEmail,
+                keyboard: .emailAddress
+            )
                 .padding(.horizontal)
 
             messagesSection
 
-            Button {
+            AuthSubmitButton(title: "Send Reset Link", isLoading: viewModel.isLoading) {
                 viewModel.sendPasswordReset()
-            } label: {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Text("Send Reset Link")
-                        .frame(maxWidth: .infinity)
-                }
             }
-            .buttonStyle(.borderedProminent)
             .padding(.horizontal)
-            .disabled(viewModel.isLoading)
 
             Button("Back to Sign In") {
                 viewModel.errorMessage = nil

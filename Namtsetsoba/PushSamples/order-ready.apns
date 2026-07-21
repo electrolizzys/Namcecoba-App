@@ -1,0 +1,13 @@
+{
+  "Simulator Target Bundle": "freeuni.Namtsetsoba",
+  "aps": {
+    "alert": {
+      "title": "Order Ready for Pickup",
+      "body": "\"Surprise Bread Basket\" from Bread House is ready for pickup."
+    },
+    "sound": "default",
+    "badge": 1
+  },
+  "type": "order",
+  "reference_id": "00000000-0000-0000-0000-000000000001"
+}

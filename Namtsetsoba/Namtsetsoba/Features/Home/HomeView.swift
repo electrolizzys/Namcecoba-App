@@ -5,48 +5,69 @@ struct HomeView: View {
     @Environment(AppState.self) private var appState
     @Environment(LocationManager.self) private var locationManager
     @State private var showMap = false
+    @State private var selectedBasket: Basket?
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: DesignTokens.padding) {
-                    filterRow
+        @Bindable var viewModel = viewModel
 
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .padding(.top, 60)
-                    } else if viewModel.filteredBaskets.isEmpty {
-                        emptyState
-                    } else {
-                        LazyVStack(spacing: 16) {
-                            ForEach(viewModel.filteredBaskets) { basket in
-                                NavigationLink(value: basket) {
-                                    BasketCard(basket: basket)
-                                }
-                                .buttonStyle(.plain)
-                            }
+        NavigationStack {
+            VStack(spacing: 0) {
+                AppListControlsHeader(
+                    searchPlaceholder: "Search by store name",
+                    searchText: $viewModel.searchQuery,
+                    sortLabel: viewModel.selectedSort.rawValue,
+                    selectedCategory: $viewModel.selectedCategory
+                ) {
+                    ForEach(SortOption.allCases) { option in
+                        Button {
+                            viewModel.selectedSort = option
+                        } label: {
+                            Label(option.rawValue, systemImage: option.systemImage)
                         }
                     }
                 }
-                .padding(.horizontal, DesignTokens.padding)
-                .padding(.bottom, 24)
+                .zIndex(1)
+
+                ScrollView {
+                    VStack(spacing: DesignTokens.padding) {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .padding(.top, 60)
+                        } else if viewModel.filteredBaskets.isEmpty {
+                            emptyState
+                        } else {
+                            LazyVStack(spacing: 16) {
+                                ForEach(viewModel.filteredBaskets) { basket in
+                                    Button {
+                                        selectedBasket = basket
+                                    } label: {
+                                        BasketCard(basket: basket)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, DesignTokens.padding)
+                    .padding(.bottom, 24)
+                }
+                .background(DesignTokens.selectedChipBackground)
             }
-            .background(Color(.systemGroupedBackground))
             .navigationTitle("Namtsetsoba")
+            .brandedListScreenStyle()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showMap = true
                     } label: {
                         Image(systemName: "map.fill")
-                            .foregroundStyle(DesignTokens.primaryGreen)
+                            .foregroundStyle(.white)
                     }
                 }
             }
             .fullScreenCover(isPresented: $showMap) {
                 MapExploreView()
             }
-            .searchable(text: $viewModel.searchQuery, prompt: "Search by store name")
             .refreshable { await viewModel.loadBaskets() }
             .task {
                 viewModel.frequentStoreIds = appState.frequentStoreIds
@@ -67,7 +88,7 @@ struct HomeView: View {
             .onChange(of: appState.basketRefreshTrigger) { _, _ in
                 Task { await viewModel.loadBaskets() }
             }
-            .navigationDestination(for: Basket.self) { basket in
+            .navigationDestination(item: $selectedBasket) { basket in
                 BasketDetailView(basket: basket)
             }
         }
@@ -111,88 +132,13 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Filter Row
-
-    private var filterRow: some View {
-        HStack(spacing: 12) {
-            dropdownButton(
-                icon: "arrow.up.arrow.down",
-                label: viewModel.selectedSort.rawValue
-            ) {
-                Button {
-                    viewModel.selectedSort = .price
-                } label: {
-                    Label("All", systemImage: "square.grid.2x2")
-                }
-                Divider()
-                ForEach(SortOption.allCases) { option in
-                    Button {
-                        viewModel.selectedSort = option
-                    } label: {
-                        Label(option.rawValue, systemImage: option.systemImage)
-                    }
-                }
-            }
-
-            dropdownButton(
-                icon: "line.3.horizontal.decrease",
-                label: viewModel.selectedCategory?.rawValue ?? "All Types"
-            ) {
-                Button {
-                    viewModel.selectedCategory = nil
-                } label: {
-                    Label("All Types", systemImage: "square.grid.2x2")
-                }
-                ForEach(ProductCategory.allCases) { category in
-                    Button {
-                        viewModel.selectedCategory = category
-                    } label: {
-                        Label("\(category.icon) \(category.rawValue)", systemImage: "tag")
-                    }
-                }
-            }
-        }
-    }
-
-    private func dropdownButton<Content: View>(
-        icon: String,
-        label: String,
-        @ViewBuilder content: @escaping () -> Content
-    ) -> some View {
-        Menu {
-            content()
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.subheadline)
-                Text(label)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(1)
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.down")
-                    .font(.caption2.weight(.semibold))
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(Color(.secondarySystemBackground))
-            .clipShape(Capsule())
-        }
-        .frame(maxWidth: .infinity)
-    }
-
 
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 40))
-                .foregroundStyle(.secondary)
-            Text("No offers found")
-                .font(.headline)
-            Text("Try adjusting your filters or search")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.top, 60)
+        AppEmptyState(
+            icon: "magnifyingglass",
+            title: "No offers found",
+            message: "Try adjusting your filters or search"
+        )
     }
 }
 

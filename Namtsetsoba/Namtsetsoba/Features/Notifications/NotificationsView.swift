@@ -13,6 +13,7 @@ struct NotificationsView: View {
                     notificationList
                 }
             }
+            .brandedListScreenStyle()
             .navigationTitle("Notifications")
             .toolbar {
                 if appState.unreadCount > 0 {
@@ -21,6 +22,7 @@ struct NotificationsView: View {
                             Task { await appState.markAllNotificationsRead() }
                         }
                         .font(.subheadline)
+                        .foregroundStyle(.white)
                     }
                 }
             }
@@ -37,7 +39,12 @@ struct NotificationsView: View {
         List {
             ForEach(appState.notifications) { notification in
                 NotificationRow(notification: notification)
-                    .listRowBackground(notification.isRead ? Color.clear : DesignTokens.primaryGreen.opacity(0.05))
+                    .listRowBackground(
+                        RoundedRectangle(cornerRadius: DesignTokens.chipCornerRadius)
+                            .fill(Color(.systemBackground))
+                    )
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                     .onTapGesture {
                         Task {
                             if !notification.isRead {
@@ -54,20 +61,17 @@ struct NotificationsView: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     private var emptyState: some View {
         VStack(spacing: 16) {
             Spacer()
-            Image(systemName: "bell.slash")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-            Text("No notifications yet")
-                .font(.headline)
-            Text("You'll see orders and favorite-store offers here")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+            AppEmptyState(
+                icon: "bell.slash",
+                title: "No notifications yet",
+                message: "You'll see orders and favorite-store offers here"
+            )
             Spacer()
         }
         .padding()

@@ -15,6 +15,7 @@ struct OrdersView: View {
                     customerOrdersContent
                 }
             }
+            .brandedListScreenStyle()
             .navigationTitle(appState.currentRole == .business ? "Incoming Orders" : "Orders")
             .refreshable {
                 await appState.loadOrders()
@@ -51,25 +52,30 @@ struct OrdersView: View {
 
         return List {
             if !active.isEmpty {
-                Section("Active") {
+                Section {
                     ForEach(active) { order in
                         NavigationLink(value: order) {
                             OrderRow(order: order, isStoreView: false)
                         }
                     }
+                } header: {
+                    ordersSectionHeader("Active Orders (\(active.count))")
                 }
             }
 
             if !past.isEmpty {
-                Section("History") {
+                DisclosureGroup {
                     ForEach(past) { order in
                         NavigationLink(value: order) {
                             OrderRow(order: order, isStoreView: false)
                         }
                     }
+                } label: {
+                    Text("Past Orders (\(past.count))")
                 }
             }
         }
+        .scrollContentBackground(.hidden)
         .navigationDestination(for: Order.self) { order in
             OrderDetailView(order: order)
         }
@@ -112,7 +118,11 @@ struct OrdersView: View {
                         }
                     }
                 } header: {
-                    Text(searchCode.isEmpty ? "Current Orders (\(current.count))" : "Current Orders")
+                    ordersSectionHeader(
+                        searchCode.isEmpty
+                            ? "Active Orders (\(current.count))"
+                            : "Active Orders"
+                    )
                 } footer: {
                     if searchCode.isEmpty, !confirmedOnly.isEmpty {
                         Button {
@@ -149,6 +159,7 @@ struct OrdersView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
         .searchable(text: $searchCode, prompt: "Search by pickup code")
         .navigationDestination(for: Order.self) { order in
             OrderDetailView(order: order)
@@ -192,6 +203,13 @@ struct OrdersView: View {
 
     private var ordersForCurrentRole: [Order] {
         appState.currentRole == .business ? appState.storeOrders : appState.orders
+    }
+
+    private func ordersSectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.headline.bold())
+            .foregroundStyle(.primary)
+            .textCase(nil)
     }
 
     // MARK: - Empty State

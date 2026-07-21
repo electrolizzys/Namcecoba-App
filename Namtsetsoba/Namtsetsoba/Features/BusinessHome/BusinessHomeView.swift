@@ -7,20 +7,26 @@ struct BusinessHomeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: DesignTokens.padding) {
-                    addBasketButton
+            VStack(spacing: 0) {
+                addBasketButton
+                    .padding(.horizontal, DesignTokens.padding)
+                    .padding(.vertical, DesignTokens.padding)
+                    .background(DesignTokens.primaryGreen)
+
+                ScrollView {
                     activeBasketsList
+                        .padding(.horizontal, DesignTokens.padding)
+                        .padding(.top, DesignTokens.padding)
+                        .padding(.bottom, 24)
                 }
-                .padding(.horizontal, DesignTokens.padding)
-                .padding(.bottom, 24)
+                .background(DesignTokens.selectedChipBackground)
             }
-            .background(Color(.systemGroupedBackground))
+            .brandedListScreenStyle()
             .navigationTitle("My Products")
-            .task {
+            .refreshable {
                 await reloadBusinessBaskets()
             }
-            .refreshable {
+            .task {
                 await reloadBusinessBaskets()
             }
             .sheet(isPresented: $showAddBasket, onDismiss: {
@@ -52,32 +58,32 @@ struct BusinessHomeView: View {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
-                        .fill(DesignTokens.primaryGreen.opacity(0.15))
+                        .fill(Color.white.opacity(0.2))
                         .frame(width: 48, height: 48)
                     Image(systemName: "plus")
                         .font(.title3.bold())
-                        .foregroundStyle(DesignTokens.primaryGreen)
+                        .foregroundStyle(.white)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Add New Basket")
                         .font(.headline)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                     Text("Create a new offer for customers")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.75))
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.85))
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color.white.opacity(0.18))
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
-            .shadow(color: DesignTokens.cardShadowColor, radius: DesignTokens.cardShadowRadius, y: 4)
+            .contentShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
         }
         .buttonStyle(.plain)
     }

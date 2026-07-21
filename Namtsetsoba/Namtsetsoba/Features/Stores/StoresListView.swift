@@ -8,6 +8,11 @@ struct StoresListView: View {
     @State private var selectedSort: StoreSortOption = .rating
     @State private var showFavouritesOnly = false
     @State private var isLoading = false
+    @State private var selectedStore: Store?
+
+    var sortLabel: String {
+        showFavouritesOnly ? "Favourites" : selectedSort.rawValue
+    }
 
     var filteredStores: [Store] {
         var result = allStores
@@ -49,117 +54,79 @@ struct StoresListView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: DesignTokens.padding) {
-                    filterRow
+            VStack(spacing: 0) {
+                AppListControlsHeader(
+                    searchPlaceholder: "Search stores",
+                    searchText: $searchQuery,
+                    sortLabel: sortLabel,
+                    selectedCategory: $selectedCategory
+                ) {
+                    Button {
+                        showFavouritesOnly = false
+                    } label: {
+                        Label("All Stores", systemImage: "square.grid.2x2")
+                    }
+                    Divider()
+                    ForEach(StoreSortOption.allCases) { option in
+                        Button {
+                            showFavouritesOnly = false
+                            selectedSort = option
+                        } label: {
+                            Label(option.rawValue, systemImage: option.systemImage)
+                        }
+                    }
+                    Divider()
+                    Button {
+                        showFavouritesOnly = true
+                    } label: {
+                        Label("Your Favorites", systemImage: "heart.fill")
+                    }
+                }
+                .zIndex(1)
 
-                    if isLoading {
-                        ProgressView()
-                            .padding(.top, 60)
-                    } else if filteredStores.isEmpty {
-                        emptyState
-                    } else {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredStores) { store in
-                                NavigationLink(value: store) {
-                                    StoreListCard(store: store)
+                ScrollView {
+                    VStack(spacing: DesignTokens.padding) {
+                        if isLoading {
+                            ProgressView()
+                                .padding(.top, 60)
+                        } else if filteredStores.isEmpty {
+                            emptyState
+                        } else {
+                            LazyVStack(spacing: 12) {
+                                ForEach(filteredStores) { store in
+                                    Button {
+                                        selectedStore = store
+                                    } label: {
+                                        StoreListCard(store: store)
+                                    }
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                     }
+                    .padding(.horizontal, DesignTokens.padding)
+                    .padding(.bottom, 24)
                 }
-                .padding(.horizontal, DesignTokens.padding)
-                .padding(.bottom, 24)
+                .background(DesignTokens.selectedChipBackground)
             }
-            .background(Color(.systemGroupedBackground))
             .navigationTitle("Stores")
-            .searchable(text: $searchQuery, prompt: "Search stores")
+            .brandedListScreenStyle()
             .refreshable { await loadStores() }
             .task {
                 if allStores.isEmpty { await loadStores() }
             }
-            .navigationDestination(for: Store.self) { store in
+            .navigationDestination(item: $selectedStore) { store in
                 StoreDetailView(store: store)
             }
         }
     }
 
-    private var filterRow: some View {
-        HStack(spacing: 12) {
-            Menu {
-                Button {
-                    showFavouritesOnly = false
-                } label: {
-                    Label("All Stores", systemImage: "square.grid.2x2")
-                }
-                Divider()
-                ForEach(StoreSortOption.allCases) { option in
-                    Button {
-                        showFavouritesOnly = false
-                        selectedSort = option
-                    } label: {
-                        Label(option.rawValue, systemImage: option.systemImage)
-                    }
-                }
-                Divider()
-                Button {
-                    showFavouritesOnly = true
-                } label: {
-                    Label("Your Favorites", systemImage: "heart.fill")
-                }
-            } label: {
-                filterLabel(
-                    icon: "arrow.up.arrow.down",
-                    text: showFavouritesOnly ? "Favourites" : selectedSort.rawValue
-                )
-            }
-
-            Menu {
-                Button {
-                    selectedCategory = nil
-                } label: {
-                    Label("All Types", systemImage: "square.grid.2x2")
-                }
-                ForEach(ProductCategory.allCases) { category in
-                    Button {
-                        selectedCategory = category
-                    } label: {
-                        Label("\(category.icon) \(category.rawValue)", systemImage: "tag")
-                    }
-                }
-            } label: {
-                filterLabel(icon: "line.3.horizontal.decrease", text: selectedCategory?.rawValue ?? "All Types")
-            }
-        }
-    }
-
-    private func filterLabel(icon: String, text: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon).font(.subheadline)
-            Text(text).font(.subheadline.weight(.medium)).lineLimit(1)
-            Spacer(minLength: 0)
-            Image(systemName: "chevron.down").font(.caption2.weight(.semibold))
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(Capsule())
-        .frame(maxWidth: .infinity)
-    }
-
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "storefront")
-                .font(.system(size: 40))
-                .foregroundStyle(.secondary)
-            Text("No stores found")
-                .font(.headline)
-            Text("Try adjusting your filters or search")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.top, 60)
+        AppEmptyState(
+            icon: "storefront",
+            title: "No stores found",
+            message: "Try adjusting your filters or search"
+        )
     }
 
     private func loadStores() async {
@@ -196,63 +163,61 @@ struct StoreListCard: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        HStack(spacing: 14) {
-            StoreThumbnailView(store: store, size: 60)
+        AppCard {
+            HStack(spacing: 14) {
+                StoreThumbnailView(store: store, size: 60)
 
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(store.name)
-                        .font(.headline)
-                    if appState.isFavourite(store.id) {
-                        Image(systemName: "heart.fill")
-                            .font(.caption)
-                            .foregroundStyle(.red)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(store.name)
+                            .font(.headline)
+                        if appState.isFavourite(store.id) {
+                            Image(systemName: "heart.fill")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                        Spacer()
+                        HStack(spacing: 2) {
+                            Image(systemName: "star.fill")
+                                .foregroundStyle(.orange)
+                            Text(String(format: "%.1f", store.rating))
+                                .fontWeight(.medium)
+                        }
+                        .font(.caption)
                     }
-                    Spacer()
-                    HStack(spacing: 2) {
-                        Image(systemName: "star.fill")
-                            .foregroundStyle(.orange)
-                        Text(String(format: "%.1f", store.rating))
-                            .fontWeight(.medium)
-                    }
-                    .font(.caption)
-                }
 
-                Text(store.address)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-
-                HStack(spacing: 12) {
-                    Label(store.category.rawValue, systemImage: "tag")
-                        .font(.caption2)
+                    Text(store.address)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
 
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(store.isOpenNow ? .green : .red)
-                            .frame(width: 6, height: 6)
-                        Text(store.isOpenNow ? "Open" : "Closed")
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(store.isOpenNow ? .green : .red)
-                    }
-
-                    Text("\(store.openTime) – \(store.closeTime)")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-
-                    if let dist = LocationManager.shared.distanceToStore(store) {
-                        Text(String(format: "%.1f km", dist))
+                    HStack(spacing: 12) {
+                        Label(store.category.rawValue, systemImage: "tag")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
+
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(store.isOpenNow ? .green : .red)
+                                .frame(width: 6, height: 6)
+                            Text(store.isOpenNow ? "Open" : "Closed")
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(store.isOpenNow ? .green : .red)
+                        }
+
+                        Text("\(store.openTime) – \(store.closeTime)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+
+                        if let dist = LocationManager.shared.distanceToStore(store) {
+                            Text(String(format: "%.1f km", dist))
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
-        .shadow(color: DesignTokens.cardShadowColor, radius: DesignTokens.cardShadowRadius, y: 4)
     }
 }
 

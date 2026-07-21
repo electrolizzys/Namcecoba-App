@@ -107,10 +107,7 @@ final class AuthViewModel {
     // MARK: - Sign Out
 
     func signOut() {
-        Task { @MainActor in
-            try? await supabase.auth.signOut()
-            isLoggedIn = false
-        }
+        isLoggedIn = false
     }
 
     // MARK: - Validation

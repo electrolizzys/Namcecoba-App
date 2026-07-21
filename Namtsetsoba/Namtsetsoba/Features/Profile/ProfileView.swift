@@ -129,6 +129,8 @@ struct ProfileView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .lightGreenScreenStyle()
             .navigationTitle("Profile")
             .refreshable {
                 await appState.loadUserInfo()

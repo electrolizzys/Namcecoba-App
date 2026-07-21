@@ -239,6 +239,7 @@ final class AppState {
     private static let favouritesKey = "favourite_store_ids"
 
     var currentRole: UserRole = .customer
+    var isProfileReady = false
     var orders: [Order] = []
     var frequentStoreIds: Set<UUID> = [] {
         didSet { saveFavourites() }
@@ -286,7 +287,9 @@ final class AppState {
     }
 
     @MainActor
-    func loadUserInfo() async {
+    func loadUserInfo() async -> Bool {
+        isProfileReady = false
+
         do {
             let user = try await supabase.auth.session.user
             userId = user.id
@@ -313,8 +316,12 @@ final class AppState {
             }
 
             await loadFavouriteStoresFromServer()
+            isProfileReady = true
+            return true
         } catch {
             print("⚠️ Could not load user info: \(error.localizedDescription)")
+            isProfileReady = false
+            return false
         }
     }
 
@@ -350,6 +357,18 @@ final class AppState {
         for i in notifications.indices {
             notifications[i].isRead = true
         }
+    }
+
+    @MainActor
+    func resetForSignOut() {
+        isProfileReady = false
+        currentRole = .customer
+        userId = nil
+        userEmail = ""
+        username = ""
+        orders = []
+        notifications = []
+        storeOrders = []
     }
 
     @MainActor

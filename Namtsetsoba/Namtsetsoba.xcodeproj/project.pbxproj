@@ -18,9 +18,12 @@
 		7C98C8C82F8149120006D8A1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C98C8C72F8149120006D8A1 /* Assets.xcassets */; };
 		7C98C8CB2F8149120006D8A1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C98C8CA2F8149120006D8A1 /* Preview Assets.xcassets */; };
 		7CEA13572FA62307002A400B /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEA13562FA62307002A400B /* NotificationService.swift */; };
+		7CEA13592FA6232F002A400B /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEA13582FA6232F002A400B /* NotificationsView.swift */; };
 		7CFAV0112FA71003002A400B /* FavouriteStoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CFAV0102FA71003002A400B /* FavouriteStoreService.swift */; };
 		7CFAV0132FA71004002A400B /* StoreThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CFAV0122FA71004002A400B /* StoreThumbnailView.swift */; };
-		7CEA13592FA6232F002A400B /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEA13582FA6232F002A400B /* NotificationsView.swift */; };
+		7CPUSH012FA80001002A400B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CPUSH002FA80001002A400B /* AppDelegate.swift */; };
+		7CPUSH032FA80001002A400B /* DeviceTokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CPUSH022FA80001002A400B /* DeviceTokenService.swift */; };
+		7CPUSH052FA80001002A400B /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CPUSH042FA80001002A400B /* PushNotificationManager.swift */; };
 		8A1000132F81491000000013 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1000012F81491000000001 /* DesignTokens.swift */; };
 		8A1000142F81491000000014 /* AppModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1000022F81491000000002 /* AppModels.swift */; };
 		8A1000152F81491000000015 /* NetworkEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1000032F81491000000003 /* NetworkEnvironment.swift */; };
@@ -61,6 +64,10 @@
 		7CEA13582FA6232F002A400B /* NotificationsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NotificationsView.swift; path = Notifications/NotificationsView.swift; sourceTree = "<group>"; };
 		7CFAV0102FA71003002A400B /* FavouriteStoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FavouriteStoreService.swift; sourceTree = "<group>"; };
 		7CFAV0122FA71004002A400B /* StoreThumbnailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreThumbnailView.swift; sourceTree = "<group>"; };
+		7CPUSH002FA80001002A400B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		7CPUSH022FA80001002A400B /* DeviceTokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceTokenService.swift; sourceTree = "<group>"; };
+		7CPUSH042FA80001002A400B /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
+		7CPUSH062FA80001002A400B /* Namtsetsoba.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Namtsetsoba.entitlements; sourceTree = "<group>"; };
 		8A1000012F81491000000001 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		8A1000022F81491000000002 /* AppModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModels.swift; sourceTree = "<group>"; };
 		8A1000032F81491000000003 /* NetworkEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkEnvironment.swift; sourceTree = "<group>"; };
@@ -134,6 +141,8 @@
 			isa = PBXGroup;
 			children = (
 				7C98C8C32F8149100006D8A1 /* NamtsetsobaApp.swift */,
+				7CPUSH002FA80001002A400B /* AppDelegate.swift */,
+				7CPUSH062FA80001002A400B /* Namtsetsoba.entitlements */,
 				7C98C8C52F8149100006D8A1 /* ContentView.swift */,
 				8A1000252F81491000000025 /* Core */,
 				8A10002B2F8149100000002B /* Features */,
@@ -193,6 +202,8 @@
 			isa = PBXGroup;
 			children = (
 				7CEA13562FA62307002A400B /* NotificationService.swift */,
+				7CPUSH022FA80001002A400B /* DeviceTokenService.swift */,
+				7CPUSH042FA80001002A400B /* PushNotificationManager.swift */,
 				7CFAV0102FA71003002A400B /* FavouriteStoreService.swift */,
 				7C8E4F4C2F93D04E006E70AD /* LocationManager.swift */,
 				8A1000042F81491000000004 /* AuthService.swift */,
@@ -414,6 +425,9 @@
 				8A10003B2F8149100000003B /* BusinessHomeView.swift in Sources */,
 				7C8E4F482F93AD1B006E70AD /* StoresListView.swift in Sources */,
 				7CEA13572FA62307002A400B /* NotificationService.swift in Sources */,
+				7CPUSH012FA80001002A400B /* AppDelegate.swift in Sources */,
+				7CPUSH032FA80001002A400B /* DeviceTokenService.swift in Sources */,
+				7CPUSH052FA80001002A400B /* PushNotificationManager.swift in Sources */,
 				7C8E4F432F939561006E70AD /* OrderDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -545,9 +559,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Namtsetsoba/Namtsetsoba.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Namtsetsoba/Preview Content\"";
+				DEVELOPMENT_TEAM = G4Q6BQHATV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Namtsetsoba needs your location to show nearby stores and calculate distances to offers.";
@@ -575,9 +591,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Namtsetsoba/Namtsetsoba.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Namtsetsoba/Preview Content\"";
+				DEVELOPMENT_TEAM = G4Q6BQHATV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Namtsetsoba needs your location to show nearby stores and calculate distances to offers.";

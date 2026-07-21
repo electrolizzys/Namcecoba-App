@@ -490,3 +490,47 @@ drop trigger if exists trg_favourite_new_basket on baskets;
 create trigger trg_favourite_new_basket
   after insert on baskets
   for each row execute function notify_favourite_store_new_basket();
+
+-- 13. PUSH NOTIFICATIONS (device tokens for APNs)
+-- ============================================
+
+create table if not exists device_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  token text not null,
+  platform text not null default 'ios',
+  updated_at timestamptz not null default now(),
+  unique (user_id, token)
+);
+
+create index if not exists idx_device_tokens_user_id on device_tokens(user_id);
+
+alter table device_tokens enable row level security;
+
+drop policy if exists "Users read own device tokens" on device_tokens;
+create policy "Users read own device tokens"
+  on device_tokens for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users upsert own device tokens" on device_tokens;
+create policy "Users upsert own device tokens"
+  on device_tokens for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users update own device tokens" on device_tokens;
+create policy "Users update own device tokens"
+  on device_tokens for update
+  to authenticated
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users delete own device tokens" on device_tokens;
+create policy "Users delete own device tokens"
+  on device_tokens for delete
+  to authenticated
+  using (auth.uid() = user_id);
+
+-- After deploying Edge Function `send-push-notification`, create a Database Webhook:
+-- Table: notifications | Event: INSERT | URL: your function URL
+-- Header: x-webhook-secret = same value as PUSH_WEBHOOK_SECRET (optional but recommended)
