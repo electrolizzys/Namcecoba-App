@@ -24,6 +24,9 @@ enum DesignTokens {
     static let filterControlHeight: CGFloat = 40
     static let chipCornerRadius: CGFloat = 10
 
+    /// Space reserved under scroll/list content so the floating glass tab bar does not cover it.
+    static let floatingTabBarClearance: CGFloat = 88
+
     static func configureTabBarAppearance() {
         let apply = {
             let appearance = UITabBarAppearance()
@@ -369,6 +372,11 @@ extension View {
     func lightGreenScreenStyle() -> some View {
         frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(DesignTokens.selectedChipBackground)
+    }
+
+    /// Keeps scroll/list content and bottom bars clear of the floating glass tab bar.
+    func clearsFloatingTabBar() -> some View {
+        safeAreaPadding(.bottom, DesignTokens.floatingTabBarClearance)
     }
 
     /// Adds the map explore button to the nav bar and its full-screen cover.

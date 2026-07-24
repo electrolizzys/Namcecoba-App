@@ -170,7 +170,7 @@ final class AppState {
 
     @MainActor
     private func loadFavouriteStoresFromServer() async {
-        guard currentRole == .customer, let uid = userId else { return }
+        guard currentRole == .customer || currentRole == .admin, let uid = userId else { return }
         if let ids = try? await fetchFavouriteStoreIdsUseCase.execute(userId: uid) {
             frequentStoreIds = ids
         }

@@ -4,4 +4,5 @@ import Foundation
 enum UserRole: String, Codable {
     case customer
     case business
+    case admin
 }

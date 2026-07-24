@@ -60,29 +60,33 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        TabView(selection: $mainTabSelection.selectedTab) {
-            PrimaryOfferTabView()
-                .tag(0)
-                .toolbar(.hidden, for: .tabBar)
+        // Overlay the custom tab bar instead of TabView.safeAreaInset — inset on TabView
+        // often fails to reach nested NavigationStacks, so last rows / pay buttons sit under it.
+        ZStack(alignment: .bottom) {
+            TabView(selection: $mainTabSelection.selectedTab) {
+                PrimaryOfferTabView()
+                    .tag(0)
+                    .toolbar(.hidden, for: .tabBar)
 
-            StoresListView()
-                .tag(1)
-                .toolbar(.hidden, for: .tabBar)
+                StoresListView()
+                    .tag(1)
+                    .toolbar(.hidden, for: .tabBar)
 
-            OrdersView()
-                .tag(2)
-                .toolbar(.hidden, for: .tabBar)
+                OrdersView()
+                    .tag(2)
+                    .toolbar(.hidden, for: .tabBar)
 
-            NotificationsView()
-                .tag(3)
-                .toolbar(.hidden, for: .tabBar)
+                NotificationsView()
+                    .tag(3)
+                    .toolbar(.hidden, for: .tabBar)
 
-            ProfileView()
-                .tag(4)
-                .toolbar(.hidden, for: .tabBar)
-        }
-        .tint(DesignTokens.primaryGreen)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+                ProfileView()
+                    .tag(4)
+                    .toolbar(.hidden, for: .tabBar)
+            }
+            .tint(DesignTokens.primaryGreen)
+            .padding(.bottom, DesignTokens.floatingTabBarClearance)
+
             GlassTabBar(
                 selectedTab: $mainTabSelection.selectedTab,
                 primaryTitle: primaryTabTitle,
@@ -91,6 +95,7 @@ struct MainTabView: View {
             )
             .padding(.horizontal, 16)
             .padding(.top, 4)
+            .padding(.bottom, 10)
         }
         .background(
             DesignTokens.selectedChipBackground

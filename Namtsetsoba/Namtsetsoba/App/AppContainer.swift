@@ -19,6 +19,7 @@ final class AppContainer {
     let notificationGateway: NotificationGateway
     let favouriteGateway: FavouriteGateway
     let deviceTokenGateway: DeviceTokenGateway
+    let adminGateway: AdminGateway
 
     init(
         authGateway: AuthGateway = ApiAuthGateway(),
@@ -27,7 +28,8 @@ final class AppContainer {
         basketGateway: BasketGateway = ApiBasketGateway(),
         notificationGateway: NotificationGateway = ApiNotificationGateway(),
         favouriteGateway: FavouriteGateway = ApiFavouriteGateway(),
-        deviceTokenGateway: DeviceTokenGateway = ApiDeviceTokenGateway()
+        deviceTokenGateway: DeviceTokenGateway = ApiDeviceTokenGateway(),
+        adminGateway: AdminGateway? = nil
     ) {
         self.authGateway = authGateway
         self.profileGateway = profileGateway
@@ -37,6 +39,7 @@ final class AppContainer {
         self.notificationGateway = notificationGateway
         self.favouriteGateway = favouriteGateway
         self.deviceTokenGateway = deviceTokenGateway
+        self.adminGateway = adminGateway ?? ApiAdminGateway(basketGateway: basketGateway)
     }
 
     // MARK: - Auth use cases
@@ -92,4 +95,31 @@ final class AppContainer {
 
     var registerDeviceToken: RegisterDeviceTokenUseCase { RegisterDeviceTokenUseCaseImpl(gateway: deviceTokenGateway) }
     var removeDeviceToken: RemoveDeviceTokenUseCase { RemoveDeviceTokenUseCaseImpl(gateway: deviceTokenGateway) }
+
+    // MARK: - Admin use cases
+
+    var fetchAdminDashboard: FetchAdminDashboardUseCase {
+        FetchAdminDashboardUseCaseImpl(gateway: adminGateway)
+    }
+    var fetchStoreSales: FetchStoreSalesUseCase {
+        FetchStoreSalesUseCaseImpl(gateway: adminGateway)
+    }
+    var fetchAdminOrders: FetchAdminOrdersUseCase {
+        FetchAdminOrdersUseCaseImpl(gateway: adminGateway)
+    }
+    var fetchAdminUsers: FetchAdminUsersUseCase {
+        FetchAdminUsersUseCaseImpl(gateway: adminGateway)
+    }
+    var fetchAdminOffers: FetchAdminOffersUseCase {
+        FetchAdminOffersUseCaseImpl(gateway: adminGateway)
+    }
+    var fetchAdminAnalytics: FetchAdminAnalyticsUseCase {
+        FetchAdminAnalyticsUseCaseImpl(gateway: adminGateway)
+    }
+    var createStoreWithVenue: CreateStoreWithVenueUseCase {
+        CreateStoreWithVenueUseCaseImpl(gateway: adminGateway)
+    }
+    var updateStore: UpdateStoreUseCase {
+        UpdateStoreUseCaseImpl(gateway: adminGateway)
+    }
 }

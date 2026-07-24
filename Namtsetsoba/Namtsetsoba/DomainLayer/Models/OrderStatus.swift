@@ -3,7 +3,7 @@ import Foundation
 /// Lifecycle state of a customer order.
 ///
 /// Colours and SF Symbols for each state live in `OrderStatus+Presentation`.
-enum OrderStatus: String, Codable {
+enum OrderStatus: String, Codable, CaseIterable {
     case confirmed
     case readyForPickup
     case pickedUp

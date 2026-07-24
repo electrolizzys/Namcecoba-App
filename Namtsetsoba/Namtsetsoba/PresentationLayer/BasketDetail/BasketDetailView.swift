@@ -197,6 +197,7 @@ struct BasketDetailView: View {
                 )
         }
         .padding()
+        .padding(.bottom, 6)
         .background(.ultraThinMaterial)
     }
 

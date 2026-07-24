@@ -99,6 +99,13 @@ struct ProfileView: View {
                 }
 
                 Section("Support") {
+                    if appState.currentRole == .admin {
+                        NavigationLink {
+                            AdminPanelView()
+                        } label: {
+                            Label("Admin Panel", systemImage: "shield.lefthalf.filled")
+                        }
+                    }
                     NavigationLink {
                         HelpCenterView()
                     } label: {

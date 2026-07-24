@@ -16,11 +16,21 @@ struct ApiProfile: Decodable {
     /// Maps the transport model to the domain `UserProfile`.
     /// The DB stores `venue` for business accounts.
     func toDomain() -> UserProfile {
-        UserProfile(
+        let mappedRole: UserRole
+        switch role {
+        case "venue":
+            mappedRole = .business
+        case "admin":
+            mappedRole = .admin
+        default:
+            mappedRole = .customer
+        }
+
+        return UserProfile(
             id: id,
             username: username ?? "",
             email: email ?? "",
-            role: role == "venue" ? .business : .customer,
+            role: mappedRole,
             storeId: storeId
         )
     }
