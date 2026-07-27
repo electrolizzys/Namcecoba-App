@@ -4,47 +4,63 @@ struct AdminOffersView: View {
     @State private var viewModel = AdminOffersViewModel()
 
     var body: some View {
-        List {
-            if viewModel.isLoading && viewModel.offers.isEmpty {
-                ProgressView()
-            } else if viewModel.offers.isEmpty {
-                Text("No active offers.")
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(viewModel.offers) { basket in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(basket.title).font(.headline)
-                        Text(basket.store.name)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        HStack {
-                            Text(Utilities.formatMoneyGel(basket.discountedPrice))
-                                .fontWeight(.semibold)
-                                .foregroundStyle(DesignTokens.primaryGreen)
-                            Spacer()
-                            Text("\(basket.remainingCount) left")
-                                .font(.caption)
-                            Text(Utilities.formatPickupWindow(
-                                start: basket.pickupStartTime,
-                                end: basket.pickupEndTime
-                            ))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                if viewModel.isLoading && viewModel.offers.isEmpty {
+                    ProgressView().padding(.top, 40)
+                } else if viewModel.offers.isEmpty {
+                    Text("No active offers.")
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 40)
+                } else {
+                    ForEach(viewModel.offers) { basket in
+                        NavigationLink {
+                            BasketDetailView(basket: basket)
+                        } label: {
+                            AdminRowCard { offerRow(basket) }
                         }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.vertical, 4)
+                }
+
+                if let error = viewModel.errorMessage {
+                    Text(error).foregroundStyle(.red).font(.caption)
                 }
             }
-
-            if let error = viewModel.errorMessage {
-                Text(error).foregroundStyle(.red).font(.caption)
-            }
+            .padding(16)
         }
-        .scrollContentBackground(.hidden)
-        .lightGreenScreenStyle()
+        .background(DesignTokens.selectedChipBackground)
         .navigationTitle("Active Offers")
         .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.load() }
         .refreshable { await viewModel.load() }
+    }
+
+    private func offerRow(_ basket: Basket) -> some View {
+        HStack(spacing: 12) {
+            StoreThumbnailView(store: basket.store, size: 52)
+                .id("\(basket.store.id.uuidString)-\(basket.store.logoURL ?? "")")
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(basket.title)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text(basket.store.name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                HStack(spacing: 8) {
+                    Text(Utilities.formatMoneyGel(basket.discountedPrice))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(DesignTokens.primaryGreen)
+                    Spacer()
+                    AdminStatusPill(
+                        text: "\(basket.remainingCount) left",
+                        color: basket.remainingCount > 0 ? AdminPalette.green : AdminPalette.red
+                    )
+                }
+                .font(.caption)
+            }
+        }
     }
 }

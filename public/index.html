@@ -3,69 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analizi</title>
+    <title>Namtsetsoba</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
+        :root {
+            --green: #1FA463;
+            --green-dark: #178A52;
+            --bg: #0E1B14;
+            --card: #14261C;
+            --text: #F2F7F3;
+            --muted: #9DB3A6;
+            --border: #24402F;
+        }
+        * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background: #1a1a2e;
-            color: white;
+            padding: 24px;
+            background: radial-gradient(1200px 600px at 50% -10%, #12301F 0%, var(--bg) 60%);
+            color: var(--text);
             text-align: center;
         }
-        .container { padding: 40px; max-width: 400px; }
-        .checkmark { font-size: 80px; margin-bottom: 20px; }
-        h1 { font-size: 2em; margin-bottom: 10px; }
-        p { font-size: 1.1em; color: #a0a0b0; margin-top: 20px; }
+        .card {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 32px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            color: var(--green);
+            margin-bottom: 24px;
+        }
+        .badge {
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(31, 164, 99, 0.14);
+            color: var(--green);
+            font-size: 40px;
+        }
+        h1 { font-size: 1.6em; margin: 0 0 12px; }
+        p { font-size: 1.02em; line-height: 1.5; color: var(--muted); margin: 8px 0 0; }
         input {
             width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background: #2a2a3e;
-            color: white;
+            padding: 14px;
+            margin: 10px 0 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #0F2016;
+            color: var(--text);
             font-size: 16px;
-            box-sizing: border-box;
         }
+        input:focus { outline: none; border-color: var(--green); }
         button {
             width: 100%;
-            padding: 14px;
-            margin-top: 16px;
+            padding: 15px;
+            margin-top: 18px;
             border: none;
-            border-radius: 8px;
-            background: #4a6cf7;
+            border-radius: 12px;
+            background: var(--green);
             color: white;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            transition: background 0.15s ease;
         }
-        button:hover { background: #3a5ce5; }
-        .error { color: #ff6b6b; font-size: 14px; }
-        .success { color: #51cf66; font-size: 14px; }
+        button:hover { background: var(--green-dark); }
+        .error { color: #FF7A7A; font-size: 14px; margin-top: 12px; }
+        .success { color: #6BE39A; font-size: 14px; margin-top: 12px; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Confirmation page (default) -->
+    <div class="card">
+        <div class="brand">🌱 Namtsetsoba</div>
+
+        <!-- Email confirmation (default) -->
         <div id="confirm-page">
-            <div class="checkmark">&#10003;</div>
-            <h1>Successfully registered on Analizi's application, looser!</h1>
-            <p>You can now go back to the app and sign in.</p>
+            <div class="badge">&#10003;</div>
+            <h1>Your email is confirmed</h1>
+            <p>Your Namtsetsoba account is now verified. You can close this page, return to the app, and sign in.</p>
         </div>
 
-        <!-- Password reset page -->
+        <!-- Password reset -->
         <div id="reset-page" class="hidden">
-            <h1>Set New Password</h1>
-            <p>Enter your new password below</p>
-            <input type="password" id="new-password" placeholder="New password (min 6 characters)">
+            <div class="badge">&#128273;</div>
+            <h1>Set a new password</h1>
+            <p>Choose a new password for your Namtsetsoba account.</p>
+            <input type="password" id="new-password" placeholder="New password (min. 6 characters)">
             <input type="password" id="confirm-password" placeholder="Confirm new password">
             <div id="reset-message"></div>
-            <button onclick="updatePassword()">Update Password</button>
+            <button onclick="updatePassword()">Update password</button>
         </div>
     </div>
 
@@ -74,7 +118,7 @@
         const SUPABASE_KEY = 'sb_publishable_ybR9eKUFIWhl1RlrCn3alQ_8To8zmR3';
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function init() {
+        function init() {
             const hash = window.location.hash;
             if (hash && hash.includes('type=recovery')) {
                 document.getElementById('confirm-page').classList.add('hidden');
@@ -88,23 +132,23 @@
             const msg = document.getElementById('reset-message');
 
             if (pw.length < 6) {
-                msg.innerHTML = '<p class="error">Password must be at least 6 characters</p>';
+                msg.innerHTML = '<p class="error">Password must be at least 6 characters.</p>';
                 return;
             }
             if (pw !== confirm) {
-                msg.innerHTML = '<p class="error">Passwords do not match</p>';
+                msg.innerHTML = '<p class="error">Passwords do not match.</p>';
                 return;
             }
 
             const { error } = await client.auth.updateUser({ password: pw });
 
             if (error) {
-                msg.innerHTML = '<p class="error">Failed to update password. Try again.</p>';
+                msg.innerHTML = '<p class="error">Could not update your password. Please try again.</p>';
             } else {
                 document.getElementById('reset-page').innerHTML =
-                    '<div class="checkmark">&#10003;</div>' +
-                    '<h1>Password updated!</h1>' +
-                    '<p>Go back to the app and sign in with your new password.</p>';
+                    '<div class="badge">&#10003;</div>' +
+                    '<h1>Password updated</h1>' +
+                    '<p>Return to the Namtsetsoba app and sign in with your new password.</p>';
             }
         }
 

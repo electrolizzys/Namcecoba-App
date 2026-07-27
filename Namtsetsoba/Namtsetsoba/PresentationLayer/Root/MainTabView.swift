@@ -4,8 +4,9 @@ import SwiftUI
 final class MainTabSelection {
     var selectedTab: Int = 0
 
+    /// Orders live at a different index per role (customers: 3rd tab, venues: 2nd tab).
     func openOrders(isBusiness: Bool) {
-        selectedTab = 2
+        selectedTab = isBusiness ? 1 : 2
     }
 
     func openMyProductsTab() {
@@ -24,87 +25,183 @@ extension EnvironmentValues {
     }
 }
 
-/// Stable root for tab 0 — avoids swapping `HomeView`/`BusinessHomeView` inside `TabView` after profile load.
-struct PrimaryOfferTabView: View {
-    @Environment(AppState.self) private var appState
+// MARK: - Tab model
 
-    var body: some View {
-        Group {
-            if !appState.isProfileReady {
-                ZStack {
-                    DesignTokens.selectedChipBackground
-                        .ignoresSafeArea()
-                    ProgressView()
-                }
-            } else if appState.currentRole == .business {
-                BusinessHomeView()
-            } else {
-                HomeView()
-            }
-        }
-    }
+/// The distinct destinations a tab can point to. The visible set is chosen by role.
+private enum TabKind: Hashable {
+    case customerHome
+    case businessProducts
+    case customerStores
+    case orders
+    case alerts
+    case profile
+    case venueAnalytics
+    case adminDashboard
+    case adminStores
+    case adminAddVenue
+    case adminOrders
+}
+
+private struct AppTab: Identifiable {
+    let id: Int
+    let kind: TabKind
+    let title: String
+    let icon: String
+    let color: Color
+    var badge: Int = 0
 }
 
 struct MainTabView: View {
     @Bindable var mainTabSelection: MainTabSelection
     @Environment(AppState.self) private var appState
 
-    private var primaryTabTitle: String {
-        guard appState.isProfileReady else { return "Home" }
-        return appState.currentRole == .business ? "My Products" : "Offers"
+    private static let ordersColor = Color(red: 0.23, green: 0.51, blue: 0.96)
+    private static let alertsColor = Color(red: 0.93, green: 0.31, blue: 0.44)
+    private static let profileColor = Color(red: 0.56, green: 0.4, blue: 0.86)
+    private static let analyticsColor = Color(red: 0.16, green: 0.62, blue: 0.63)
+
+    private var tabKinds: [TabKind] {
+        switch appState.currentRole {
+        case .business:
+            [.businessProducts, .orders, .venueAnalytics, .alerts, .profile]
+        case .admin:
+            [.adminDashboard, .adminStores, .adminAddVenue, .adminOrders, .profile]
+        default:
+            [.customerHome, .customerStores, .orders, .alerts, .profile]
+        }
     }
 
-    private var primaryTabIcon: String {
-        guard appState.isProfileReady else { return "house.fill" }
-        return appState.currentRole == .business ? "storefront.fill" : "leaf.fill"
+    private var tabs: [AppTab] {
+        tabKinds.enumerated().map { index, kind in
+            AppTab(
+                id: index,
+                kind: kind,
+                title: title(for: kind),
+                icon: icon(for: kind),
+                color: color(for: kind),
+                badge: kind == .alerts ? appState.unreadCount : 0
+            )
+        }
     }
 
     var body: some View {
+        Group {
+            if !appState.isProfileReady {
+                loadingScreen
+            } else {
+                tabScaffold
+            }
+        }
+    }
+
+    private var loadingScreen: some View {
+        ZStack {
+            DesignTokens.selectedChipBackground
+                .ignoresSafeArea()
+            ProgressView()
+        }
+    }
+
+    private var tabScaffold: some View {
         // Overlay the custom tab bar instead of TabView.safeAreaInset — inset on TabView
         // often fails to reach nested NavigationStacks, so last rows / pay buttons sit under it.
         ZStack(alignment: .bottom) {
             TabView(selection: $mainTabSelection.selectedTab) {
-                PrimaryOfferTabView()
-                    .tag(0)
-                    .toolbar(.hidden, for: .tabBar)
-
-                StoresListView()
-                    .tag(1)
-                    .toolbar(.hidden, for: .tabBar)
-
-                OrdersView()
-                    .tag(2)
-                    .toolbar(.hidden, for: .tabBar)
-
-                NotificationsView()
-                    .tag(3)
-                    .toolbar(.hidden, for: .tabBar)
-
-                ProfileView()
-                    .tag(4)
-                    .toolbar(.hidden, for: .tabBar)
+                ForEach(tabs) { tab in
+                    destination(for: tab.kind)
+                        .tag(tab.id)
+                        .toolbar(.hidden, for: .tabBar)
+                        // Reserve room for the floating bar via safe area (not padding), so each
+                        // screen's own background extends under the bar — no separate flat panel.
+                        .safeAreaInset(edge: .bottom) {
+                            Color.clear.frame(height: DesignTokens.floatingTabBarClearance)
+                        }
+                }
             }
             .tint(DesignTokens.primaryGreen)
-            .padding(.bottom, DesignTokens.floatingTabBarClearance)
 
-            GlassTabBar(
-                selectedTab: $mainTabSelection.selectedTab,
-                primaryTitle: primaryTabTitle,
-                primaryIcon: primaryTabIcon,
-                unreadCount: appState.unreadCount
-            )
-            .padding(.horizontal, 16)
-            .padding(.top, 4)
-            .padding(.bottom, 10)
+            GlassTabBar(tabs: tabs, selectedTab: $mainTabSelection.selectedTab)
+                .padding(.horizontal, 16)
+                .padding(.top, 4)
+                .padding(.bottom, 10)
         }
         .background(
             DesignTokens.selectedChipBackground
                 .ignoresSafeArea()
         )
-        .onChange(of: appState.currentRole) { _, role in
-            if role == .business && mainTabSelection.selectedTab == 1 {
-                mainTabSelection.selectedTab = 0
-            }
+        .onChange(of: appState.currentRole) { _, _ in
+            // Tab meaning changes per role, so land on the first tab to avoid confusion.
+            mainTabSelection.selectedTab = 0
+        }
+    }
+
+    // MARK: - Destinations
+
+    @ViewBuilder
+    private func destination(for kind: TabKind) -> some View {
+        switch kind {
+        case .customerHome:
+            HomeView()
+        case .businessProducts:
+            BusinessHomeView()
+        case .customerStores:
+            StoresListView()
+        case .orders:
+            OrdersView()
+        case .alerts:
+            NotificationsView()
+        case .profile:
+            ProfileView()
+        case .venueAnalytics:
+            NavigationStack { VenueAnalyticsView() }
+        case .adminDashboard:
+            NavigationStack { AdminDashboardView() }
+        case .adminStores:
+            NavigationStack { AdminStoresView() }
+        case .adminAddVenue:
+            NavigationStack { AdminAddVenueView() }
+        case .adminOrders:
+            NavigationStack { AdminOrdersView() }
+        }
+    }
+
+    // MARK: - Tab metadata
+
+    private func title(for kind: TabKind) -> String {
+        switch kind {
+        case .customerHome: L(.tabOffers)
+        case .businessProducts: L(.tabMyProducts)
+        case .customerStores, .adminStores: L(.tabStores)
+        case .orders, .adminOrders: L(.tabOrders)
+        case .alerts: L(.tabAlerts)
+        case .profile: L(.tabProfile)
+        case .venueAnalytics: L(.tabAnalytics)
+        case .adminDashboard: L(.tabDashboard)
+        case .adminAddVenue: L(.tabAddVenue)
+        }
+    }
+
+    private func icon(for kind: TabKind) -> String {
+        switch kind {
+        case .customerHome: "leaf.fill"
+        case .businessProducts, .customerStores, .adminStores: "storefront.fill"
+        case .orders, .adminOrders: "bag.fill"
+        case .alerts: "bell.fill"
+        case .profile: "person.fill"
+        case .venueAnalytics: "chart.bar.fill"
+        case .adminDashboard: "square.grid.2x2.fill"
+        case .adminAddVenue: "plus.circle.fill"
+        }
+    }
+
+    private func color(for kind: TabKind) -> Color {
+        switch kind {
+        case .customerHome, .businessProducts, .adminAddVenue: DesignTokens.primaryGreen
+        case .customerStores, .adminStores: DesignTokens.accentOrange
+        case .orders, .adminOrders: Self.ordersColor
+        case .alerts: Self.alertsColor
+        case .profile: Self.profileColor
+        case .venueAnalytics, .adminDashboard: Self.analyticsColor
         }
     }
 }
@@ -113,52 +210,52 @@ struct MainTabView: View {
 
 /// A floating, translucent "liquid glass" tab bar with an animated selection pill.
 private struct GlassTabBar: View {
+    let tabs: [AppTab]
     @Binding var selectedTab: Int
-    let primaryTitle: String
-    let primaryIcon: String
-    let unreadCount: Int
 
     @Namespace private var pillNamespace
 
-    private struct TabItem: Identifiable {
-        let id: Int
-        let icon: String
-        let title: String
-        let color: Color
-        var badge: Int = 0
-    }
-
-    private var items: [TabItem] {
-        [
-            TabItem(id: 0, icon: primaryIcon, title: primaryTitle, color: DesignTokens.primaryGreen),
-            TabItem(id: 1, icon: "storefront.fill", title: "Stores", color: DesignTokens.accentOrange),
-            TabItem(id: 2, icon: "bag.fill", title: "Orders", color: Color(red: 0.23, green: 0.51, blue: 0.96)),
-            TabItem(id: 3, icon: "bell.fill", title: "Alerts", color: Color(red: 0.93, green: 0.31, blue: 0.44), badge: unreadCount),
-            TabItem(id: 4, icon: "person.fill", title: "Profile", color: Color(red: 0.56, green: 0.4, blue: 0.86)),
-        ]
-    }
-
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(items) { item in
+            ForEach(tabs) { item in
                 tabButton(for: item)
             }
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(
+        .padding(.vertical, 7)
+        .background {
+            ZStack {
+                Capsule(style: .continuous)
+                    .fill(.ultraThinMaterial)
+                // Top-down sheen for a glassy, "liquid" highlight.
+                Capsule(style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.38), Color.white.opacity(0.04)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .blendMode(.plusLighter)
+            }
+        }
+        .overlay {
             Capsule(style: .continuous)
-                .fill(.regularMaterial)
-        )
-        .overlay(
-            Capsule(style: .continuous)
-                .strokeBorder(Color.white.opacity(0.5), lineWidth: 0.5)
-        )
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.75), Color.white.opacity(0.12)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 0.8
+                )
+        }
         .clipShape(Capsule(style: .continuous))
-        .shadow(color: .black.opacity(0.12), radius: 14, y: 6)
+        .shadow(color: .black.opacity(0.18), radius: 20, y: 9)
+        .shadow(color: .black.opacity(0.06), radius: 2, y: 1)
     }
 
-    private func tabButton(for item: TabItem) -> some View {
+    private func tabButton(for item: AppTab) -> some View {
         let isSelected = selectedTab == item.id
         let iconColor = isSelected ? item.color : item.color.opacity(0.55)
         let labelColor = isSelected ? item.color : Color.secondary
@@ -168,11 +265,11 @@ private struct GlassTabBar: View {
                 selectedTab = item.id
             }
         } label: {
-            VStack(spacing: 3) {
+            VStack(spacing: 4) {
                 Image(systemName: item.icon)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(iconColor)
-                    .frame(height: 21)
+                    .frame(height: 23)
                     .scaleEffect(isSelected ? 1.06 : 1)
                     .overlay(alignment: .topTrailing) {
                         if item.badge > 0 {
@@ -190,10 +287,10 @@ private struct GlassTabBar: View {
                     .font(.system(size: 10, weight: isSelected ? .bold : .medium))
                     .foregroundStyle(labelColor)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    .minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 7)
+            .padding(.vertical, 9)
             .background {
                 if isSelected {
                     Capsule(style: .continuous)

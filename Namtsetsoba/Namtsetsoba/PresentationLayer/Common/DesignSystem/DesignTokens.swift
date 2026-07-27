@@ -10,10 +10,11 @@ enum DesignTokens {
     static let cardShadowColor: Color = .black.opacity(0.08)
     static let cardShadowRadius: CGFloat = 8
 
-    static let primaryGreen = Color(red: 0.1, green: 0.6, blue: 0.4)
-    static let primaryGreenDark = Color(red: 0.06, green: 0.44, blue: 0.31)
-    static let accentOrange = Color(red: 0.95, green: 0.55, blue: 0.2)
-    static let selectedChipBackground = Color(red: 0.88, green: 0.96, blue: 0.92)
+    // A calmer, more natural leaf-green (the previous emerald read as too neon).
+    static let primaryGreen = Color(red: 0.17, green: 0.51, blue: 0.34)
+    static let primaryGreenDark = Color(red: 0.10, green: 0.37, blue: 0.24)
+    static let accentOrange = Color(red: 0.93, green: 0.55, blue: 0.24)
+    static let selectedChipBackground = Color(red: 0.91, green: 0.95, blue: 0.92)
 
     static let headerGradient = LinearGradient(
         colors: [primaryGreen, primaryGreenDark],
@@ -25,30 +26,18 @@ enum DesignTokens {
     static let chipCornerRadius: CGFloat = 10
 
     /// Space reserved under scroll/list content so the floating glass tab bar does not cover it.
-    static let floatingTabBarClearance: CGFloat = 88
+    static let floatingTabBarClearance: CGFloat = 84
 
     static func configureTabBarAppearance() {
         let apply = {
+            // The app ships a fully custom floating "glass" tab bar (see MainTabView).
+            // The native UITabBar is hidden on every tab, so make it transparent — an
+            // opaque background here paints a thick white strip along the bottom edge.
             let appearance = UITabBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor.systemBackground
-            appearance.shadowColor = UIColor.separator
-
-            let titleOffset = UIOffset(horizontal: 0, vertical: 2)
-            let selectedGreen = UIColor(red: 0.1, green: 0.6, blue: 0.4, alpha: 1)
-
-            func style(_ layout: UITabBarItemAppearance) {
-                layout.normal.iconColor = UIColor.secondaryLabel
-                layout.selected.iconColor = selectedGreen
-                layout.normal.titleTextAttributes = [.foregroundColor: UIColor.secondaryLabel]
-                layout.selected.titleTextAttributes = [.foregroundColor: selectedGreen]
-                layout.normal.titlePositionAdjustment = titleOffset
-                layout.selected.titlePositionAdjustment = titleOffset
-            }
-
-            style(appearance.stackedLayoutAppearance)
-            style(appearance.inlineLayoutAppearance)
-            style(appearance.compactInlineLayoutAppearance)
+            appearance.configureWithTransparentBackground()
+            appearance.backgroundColor = .clear
+            appearance.shadowColor = .clear
+            appearance.shadowImage = UIImage()
 
             UITabBar.appearance().standardAppearance = appearance
             UITabBar.appearance().scrollEdgeAppearance = appearance
@@ -415,48 +404,5 @@ struct AppEmptyState: View {
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 60)
-    }
-}
-
-struct AuthInputField: View {
-    let title: String
-    @Binding var text: String
-    var keyboard: UIKeyboardType = .default
-    var secure: Bool = false
-    var contentType: UITextContentType?
-
-    var body: some View {
-        Group {
-            if secure {
-                SecureField(title, text: $text)
-            } else {
-                TextField(title, text: $text)
-            }
-        }
-        .keyboardType(keyboard)
-        .autocorrectionDisabled()
-        .textInputAutocapitalization(.never)
-        .textFieldStyle(.roundedBorder)
-        .textContentType(contentType)
-    }
-}
-
-struct AuthSubmitButton: View {
-    let title: String
-    let isLoading: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            if isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-            } else {
-                Text(title)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-        .buttonStyle(.borderedProminent)
-        .disabled(isLoading)
     }
 }

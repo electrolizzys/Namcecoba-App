@@ -38,7 +38,7 @@ struct NotificationsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .brandedListScreenStyle()
-            .navigationTitle("Notifications")
+            .navigationTitle(L(.alertsTitle))
             .mapExploreToolbarItem(isPresented: $showMap)
             .toolbar {
                 if appState.unreadCount > 0 {
@@ -93,10 +93,10 @@ struct NotificationsView: View {
         return VStack(spacing: 16) {
             AppEmptyState(
                 icon: isFiltering ? "line.3.horizontal.decrease.circle" : "bell.slash",
-                title: isFiltering ? "No matching notifications" : "No notifications yet",
+                title: isFiltering ? "No matching notifications" : L(.alertsEmptyTitle),
                 message: isFiltering
                     ? "Try a different filter"
-                    : "You'll see orders and favorite-store offers here"
+                    : L(.alertsEmptyMessage)
             )
         }
         .padding()

@@ -1,4 +1,9 @@
+import MapKit
+import PhotosUI
 import SwiftUI
+import UIKit
+
+// MARK: - Edit host (presented as a sheet from the stores list)
 
 struct AdminStoreFormView: View {
     @State private var viewModel: AdminStoreFormViewModel
@@ -11,56 +16,19 @@ struct AdminStoreFormView: View {
     }
 
     var body: some View {
-        @Bindable var viewModel = viewModel
-
-        Form {
-            Section("Store") {
-                TextField("Name", text: $viewModel.name)
-                TextField("Address", text: $viewModel.address)
-                Picker("Category", selection: $viewModel.category) {
-                    ForEach(ProductCategory.allCases) { category in
-                        Text(category.rawValue).tag(category)
-                    }
-                }
-                TextField("Latitude", text: $viewModel.latitude)
-                    .keyboardType(.decimalPad)
-                TextField("Longitude", text: $viewModel.longitude)
-                    .keyboardType(.decimalPad)
-                TextField("Open (HH:mm)", text: $viewModel.openTime)
-                TextField("Close (HH:mm)", text: $viewModel.closeTime)
-                TextField("Rating", text: $viewModel.rating)
-                    .keyboardType(.decimalPad)
-            }
-
-            if !viewModel.isEditing {
-                Section("Venue account") {
-                    TextField("Username", text: $viewModel.accountUsername)
-                    TextField("Email", text: $viewModel.accountEmail)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.emailAddress)
-                    SecureField("Temporary password", text: $viewModel.temporaryPassword)
-                    Text("Creates a venue login linked to this store. Share the temporary password securely.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if let error = viewModel.errorMessage {
-                Section {
-                    Text(error).foregroundStyle(.red).font(.caption)
-                }
-            }
+        ScrollView {
+            StoreFormContent(viewModel: viewModel)
+                .padding(20)
         }
+        .background(DesignTokens.selectedChipBackground)
         .navigationTitle(viewModel.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                if !viewModel.isEditing {
-                    Button("Cancel") { dismiss() }
-                }
+                Button(L(.commonCancel)) { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button(viewModel.isEditing ? "Save" : "Create") {
+                Button(viewModel.isEditing ? L(.commonSave) : L(.commonCreate)) {
                     Task {
                         await viewModel.save()
                         if viewModel.didSave {
@@ -73,5 +41,297 @@ struct AdminStoreFormView: View {
                 .disabled(viewModel.isSaving)
             }
         }
+    }
+}
+
+// MARK: - Add Venue tab (admin)
+
+struct AdminAddVenueView: View {
+    @State private var viewModel = AdminStoreFormViewModel()
+    @State private var formToken = UUID()
+    @State private var showSuccess = false
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 18) {
+                StoreFormContent(viewModel: viewModel)
+                    .id(formToken)
+                createButton
+            }
+            .padding(20)
+        }
+        .background(DesignTokens.selectedChipBackground)
+        .navigationTitle(L(.tabAddVenue))
+        .navigationBarTitleDisplayMode(.inline)
+        .overlay(alignment: .top) {
+            if showSuccess { successToast }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSuccess)
+    }
+
+    private var createButton: some View {
+        Button {
+            Task {
+                await viewModel.save()
+                if viewModel.didSave {
+                    viewModel.reset()
+                    formToken = UUID()
+                    showSuccess = true
+                    try? await Task.sleep(for: .seconds(2.5))
+                    showSuccess = false
+                }
+            }
+        } label: {
+            ZStack {
+                if viewModel.isSaving {
+                    ProgressView().tint(.white)
+                } else {
+                    Label("Create venue", systemImage: "checkmark.circle.fill")
+                        .font(.headline)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
+            .foregroundStyle(.white)
+            .background(DesignTokens.headerGradient)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: DesignTokens.primaryGreen.opacity(0.35), radius: 12, y: 6)
+        }
+        .buttonStyle(.plain)
+        .disabled(viewModel.isSaving)
+    }
+
+    private var successToast: some View {
+        Label("Venue created", systemImage: "checkmark.seal.fill")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 12)
+            .background(Capsule().fill(DesignTokens.primaryGreen))
+            .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
+            .padding(.top, 8)
+            .transition(.move(edge: .top).combined(with: .opacity))
+    }
+}
+
+// MARK: - Shared branded form
+
+private struct StoreFormContent: View {
+    @Bindable var viewModel: AdminStoreFormViewModel
+
+    @State private var photoItem: PhotosPickerItem?
+    @State private var previewImage: Image?
+    @State private var cameraPosition: MapCameraPosition = .automatic
+
+    private var coordinate: CLLocationCoordinate2D? {
+        guard let lat = viewModel.parsedLatitude, let lon = viewModel.parsedLongitude else { return nil }
+        return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+    }
+
+    var body: some View {
+        VStack(spacing: 18) {
+            if !viewModel.isEditing { photoCard }
+            detailsCard
+            locationCard
+            hoursCard
+            if !viewModel.isEditing { accountCard }
+
+            if let error = viewModel.errorMessage {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                    Text(error)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(.red)
+                .padding(12)
+                .background(Color.red.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+        }
+        .onAppear(perform: centerMap)
+        .onChange(of: photoItem) { _, item in
+            guard let item else { return }
+            Task { await loadPhoto(item) }
+        }
+    }
+
+    // MARK: Cards
+
+    private var photoCard: some View {
+        card("Store photo", icon: "photo.on.rectangle.angled") {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle().fill(Color(.secondarySystemBackground))
+                    if let previewImage {
+                        previewImage
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Image(systemName: "storefront.fill")
+                            .font(.system(size: 26))
+                            .foregroundStyle(DesignTokens.primaryGreen.opacity(0.6))
+                    }
+                }
+                .frame(width: 72, height: 72)
+                .clipShape(Circle())
+                .overlay(Circle().strokeBorder(Color(.separator).opacity(0.3), lineWidth: 1))
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Shown to customers on Offers and Stores.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    PhotosPicker(selection: $photoItem, matching: .images) {
+                        Label(previewImage == nil ? "Choose photo" : "Change photo",
+                              systemImage: "photo")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+    }
+
+    private var detailsCard: some View {
+        card("Store details", icon: "storefront.fill") {
+            field("Name", text: $viewModel.name)
+            field("Address", text: $viewModel.address)
+            Menu {
+                ForEach(ProductCategory.allCases) { category in
+                    Button {
+                        viewModel.category = category
+                    } label: {
+                        Text("\(category.icon)  \(category.rawValue)")
+                    }
+                }
+            } label: {
+                HStack {
+                    Text("\(viewModel.category.icon)  \(viewModel.category.rawValue)")
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 14)
+                .frame(height: 48)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+        }
+    }
+
+    private var locationCard: some View {
+        card("Location", icon: "mappin.and.ellipse") {
+            Text("Tap the map to drop the pin on the venue.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            MapReader { proxy in
+                Map(position: $cameraPosition) {
+                    if let coordinate {
+                        Marker("", coordinate: coordinate)
+                            .tint(DesignTokens.primaryGreen)
+                    }
+                }
+                .frame(height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .onTapGesture { location in
+                    if let coordinate = proxy.convert(location, from: .local) {
+                        viewModel.setCoordinate(latitude: coordinate.latitude, longitude: coordinate.longitude)
+                    }
+                }
+            }
+
+            HStack {
+                Image(systemName: "location.fill")
+                    .font(.caption)
+                    .foregroundStyle(DesignTokens.primaryGreen)
+                Text(viewModel.hasCoordinate
+                     ? "\(viewModel.latitude), \(viewModel.longitude)"
+                     : "No location selected")
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var hoursCard: some View {
+        card("Opening hours", icon: "clock.fill") {
+            DatePicker("Opens", selection: $viewModel.openTimeDate, displayedComponents: .hourAndMinute)
+            DatePicker("Closes", selection: $viewModel.closeTimeDate, displayedComponents: .hourAndMinute)
+        }
+    }
+
+    private var accountCard: some View {
+        card("Venue account", icon: "person.badge.key.fill") {
+            field("Username", text: $viewModel.accountUsername, autocap: .never)
+            field("Email", text: $viewModel.accountEmail, keyboard: .emailAddress, autocap: .never)
+            SecureField("Temporary password", text: $viewModel.temporaryPassword)
+                .textContentType(.oneTimeCode)
+                .padding(.horizontal, 14)
+                .frame(height: 48)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            Text("Creates a venue login linked to this store. Share the temporary password securely.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: Building blocks
+
+    private func card<Content: View>(
+        _ title: String,
+        icon: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label(title, systemImage: icon)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(DesignTokens.primaryGreen)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
+    }
+
+    private func field(
+        _ placeholder: String,
+        text: Binding<String>,
+        keyboard: UIKeyboardType = .default,
+        autocap: TextInputAutocapitalization = .sentences
+    ) -> some View {
+        TextField(placeholder, text: text)
+            .keyboardType(keyboard)
+            .textInputAutocapitalization(autocap)
+            .autocorrectionDisabled(keyboard == .emailAddress)
+            .padding(.horizontal, 14)
+            .frame(height: 48)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    // MARK: Actions
+
+    private func centerMap() {
+        guard let coordinate else { return }
+        cameraPosition = .region(
+            MKCoordinateRegion(
+                center: coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+            )
+        )
+    }
+
+    private func loadPhoto(_ item: PhotosPickerItem) async {
+        guard let data = try? await item.loadTransferable(type: Data.self),
+              let uiImage = UIImage(data: data),
+              let jpeg = uiImage.jpegData(compressionQuality: 0.85) else { return }
+        viewModel.photoData = jpeg
+        previewImage = Image(uiImage: uiImage)
     }
 }

@@ -9,6 +9,7 @@ import Observation
 @Observable
 final class AppState {
     private static let favouritesKey = "favourite_store_ids"
+    private static let offeredRatingKey = "offered_rating_order_ids"
 
     // MARK: - Dependencies
 
@@ -23,6 +24,7 @@ final class AppState {
     @ObservationIgnored private let fetchFavouriteStoreIdsUseCase: FetchFavouriteStoreIdsUseCase
     @ObservationIgnored private let addFavouriteStoreUseCase: AddFavouriteStoreUseCase
     @ObservationIgnored private let removeFavouriteStoreUseCase: RemoveFavouriteStoreUseCase
+    @ObservationIgnored private let fetchRatedOrderIdsUseCase: FetchRatedOrderIdsUseCase
 
     // MARK: - State
 
@@ -41,9 +43,17 @@ final class AppState {
     var unreadCount: Int { notifications.filter { !$0.isRead }.count }
     var pendingOrderNavigationId: UUID?
 
-    var businessStore: Store = MockData.stores[0]
-    var businessBaskets: [Basket] = MockData.businessBaskets
+    var businessStore: Store = .placeholder
+    var businessBaskets: [Basket] = []
     var storeOrders: [Order] = []
+
+    /// Ids of picked-up orders the customer has already rated.
+    var ratedOrderIds: Set<UUID> = []
+
+    /// Ids of orders the customer was already auto-prompted to rate (persisted per
+    /// device/account). Prevents the rating popup from re-appearing for an order the
+    /// user has already seen it for — even if they dismissed it with "Not now".
+    var offeredRatingOrderIds: Set<UUID> = []
 
     var basketRefreshTrigger = false
 
@@ -61,6 +71,7 @@ final class AppState {
         fetchFavouriteStoreIdsUseCase = container.fetchFavouriteStoreIds
         addFavouriteStoreUseCase = container.addFavouriteStore
         removeFavouriteStoreUseCase = container.removeFavouriteStore
+        fetchRatedOrderIdsUseCase = container.fetchRatedOrderIds
 
         frequentStoreIds = Self.loadFavourites()
     }
@@ -76,6 +87,7 @@ final class AppState {
             userEmail = profile.email
             username = profile.username
             currentRole = profile.role
+            loadOfferedRatings()
 
             if profile.role == .business, let storeId = profile.storeId {
                 if let store = try? await fetchStoreUseCase.execute(id: storeId) {
@@ -100,7 +112,56 @@ final class AppState {
         orders = (try? await fetchOrdersUseCase.execute(userId: userId)) ?? []
         if currentRole == .business {
             storeOrders = (try? await fetchStoreOrdersUseCase.execute(storeId: businessStore.id)) ?? []
+        } else {
+            ratedOrderIds = (try? await fetchRatedOrderIdsUseCase.execute(userId: userId)) ?? ratedOrderIds
         }
+    }
+
+    /// Whether the customer still needs to rate this order.
+    func needsRating(_ order: Order) -> Bool {
+        currentRole != .business
+            && order.status == .pickedUp
+            && !ratedOrderIds.contains(order.id)
+    }
+
+    /// The most recent picked-up order the customer hasn't rated *and* hasn't already
+    /// been auto-prompted about.
+    var pendingRatingOrder: Order? {
+        orders
+            .filter {
+                $0.status == .pickedUp
+                    && !ratedOrderIds.contains($0.id)
+                    && !offeredRatingOrderIds.contains($0.id)
+            }
+            .max { $0.orderDate < $1.orderDate }
+    }
+
+    @MainActor
+    func markOrderRated(_ orderId: UUID) {
+        ratedOrderIds.insert(orderId)
+        markRatingOffered(orderId)
+    }
+
+    /// Records that the rating popup has been shown for this order so it is never
+    /// auto-presented again (persisted across launches, scoped to the current user).
+    func markRatingOffered(_ orderId: UUID) {
+        guard offeredRatingOrderIds.insert(orderId).inserted else { return }
+        guard let key = offeredRatingsKey else { return }
+        UserDefaults.standard.set(offeredRatingOrderIds.map(\.uuidString), forKey: key)
+    }
+
+    private var offeredRatingsKey: String? {
+        guard let userId else { return nil }
+        return "\(Self.offeredRatingKey).\(userId.uuidString)"
+    }
+
+    private func loadOfferedRatings() {
+        guard let key = offeredRatingsKey,
+              let raw = UserDefaults.standard.array(forKey: key) as? [String] else {
+            offeredRatingOrderIds = []
+            return
+        }
+        offeredRatingOrderIds = Set(raw.compactMap(UUID.init(uuidString:)))
     }
 
     @MainActor
@@ -137,6 +198,8 @@ final class AppState {
         orders = []
         notifications = []
         storeOrders = []
+        ratedOrderIds = []
+        offeredRatingOrderIds = []
     }
 
     @MainActor
@@ -197,7 +260,7 @@ final class AppState {
 
     private static func loadFavourites() -> Set<UUID> {
         guard let strings = UserDefaults.standard.stringArray(forKey: favouritesKey) else {
-            return MockData.frequentStoreIds
+            return []
         }
         return Set(strings.compactMap { UUID(uuidString: $0) })
     }

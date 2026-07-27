@@ -13,7 +13,7 @@ struct HomeView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 AppListControlsHeader(
-                    searchPlaceholder: "Search by store name",
+                    searchPlaceholder: L(.offersSearchPlaceholder),
                     searchText: $viewModel.searchQuery,
                     sortLabel: viewModel.selectedSort.rawValue,
                     selectedCategory: $viewModel.selectedCategory
@@ -125,8 +125,8 @@ struct HomeView: View {
     private var emptyState: some View {
         AppEmptyState(
             icon: "magnifyingglass",
-            title: "No offers found",
-            message: "Try adjusting your filters or search"
+            title: L(.offersEmptyTitle),
+            message: L(.offersEmptyMessage)
         )
     }
 }
@@ -215,7 +215,7 @@ struct BasketCard: View {
                 HStack(spacing: 2) {
                     Image(systemName: "star.fill")
                         .foregroundStyle(.orange)
-                    Text(String(format: "%.1f", basket.store.rating))
+                    Text(basket.store.displayRatingText)
                 }
                 .font(.caption.weight(.medium))
             }

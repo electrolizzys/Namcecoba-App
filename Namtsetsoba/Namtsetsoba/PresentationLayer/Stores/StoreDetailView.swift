@@ -73,8 +73,11 @@ struct StoreDetailView: View {
                 HStack(spacing: 2) {
                     Image(systemName: "star.fill")
                         .foregroundStyle(.orange)
-                    Text(String(format: "%.1f", store.rating))
+                    Text(store.displayRatingText)
                         .fontWeight(.bold)
+                    Text(store.ratingCountText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 .font(.subheadline)
             }

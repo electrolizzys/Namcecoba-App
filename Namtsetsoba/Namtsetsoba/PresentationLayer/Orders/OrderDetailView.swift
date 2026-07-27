@@ -6,9 +6,16 @@ struct OrderDetailView: View {
     @State private var viewModel = OrdersViewModel()
     @State private var currentStatus: OrderStatus
     @State private var isUpdating = false
+    @State private var showRating = false
+    @State private var showConfirmPickup = false
 
     private var isStoreView: Bool { appState.currentRole == .business }
     private var isActive: Bool { currentStatus == .confirmed || currentStatus == .readyForPickup }
+    private var canRate: Bool {
+        !isStoreView
+            && currentStatus == .pickedUp
+            && !appState.ratedOrderIds.contains(order.id)
+    }
 
     init(order: Order) {
         self.order = order
@@ -25,6 +32,12 @@ struct OrderDetailView: View {
                     storeCard
                 }
                 paymentCard
+                if !isStoreView && isActive {
+                    customerActions
+                }
+                if canRate {
+                    rateCard
+                }
                 if isStoreView && isActive {
                     storeActions
                 }
@@ -34,6 +47,90 @@ struct OrderDetailView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Order Details")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showRating) {
+            RateOrderView(order: order)
+        }
+    }
+
+    // MARK: - Customer Actions (confirm pickup)
+
+    private var customerActions: some View {
+        VStack(spacing: 8) {
+            Button {
+                showConfirmPickup = true
+            } label: {
+                HStack {
+                    Image(systemName: "checkmark.seal.fill")
+                    Text("Confirm Pickup")
+                        .fontWeight(.semibold)
+                    if isUpdating {
+                        Spacer()
+                        ProgressView().tint(.white)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .foregroundStyle(.white)
+                .background(DesignTokens.primaryGreen, in: RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
+            }
+            .disabled(isUpdating)
+
+            Text("Tap once you've collected your bag. This moves the order to your history.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .confirmationDialog(
+            "Confirm pickup?",
+            isPresented: $showConfirmPickup,
+            titleVisibility: .visible
+        ) {
+            Button("Yes, I collected it") {
+                Task { await confirmPickup() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Only confirm after receiving your order from \(order.basket.store.name).")
+        }
+    }
+
+    private func confirmPickup() async {
+        isUpdating = true
+        if await viewModel.updateStatus(orderId: order.id, to: .pickedUp) {
+            currentStatus = .pickedUp
+            applyStatusLocally(.pickedUp)
+            appState.markRatingOffered(order.id)
+            showRating = true
+        }
+        isUpdating = false
+    }
+
+    // MARK: - Rate (customer, picked up)
+
+    private var rateCard: some View {
+        VStack(spacing: 12) {
+            Label("How was your pickup?", systemImage: "star.bubble.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button {
+                showRating = true
+            } label: {
+                HStack {
+                    Image(systemName: "star.fill")
+                    Text("Rate \(order.basket.store.name)")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .foregroundStyle(.white)
+                .background(DesignTokens.accentOrange, in: RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.cornerRadius))
     }
 
     // MARK: - Status
@@ -245,10 +342,19 @@ struct OrderDetailView: View {
         isUpdating = true
         if await viewModel.updateStatus(orderId: order.id, to: newStatus) {
             currentStatus = newStatus
-            if let idx = appState.storeOrders.firstIndex(where: { $0.id == order.id }) {
-                appState.storeOrders[idx].status = newStatus
-            }
+            applyStatusLocally(newStatus)
         }
         isUpdating = false
+    }
+
+    /// Mirrors the new status into whichever cached list holds this order so the UI
+    /// (active vs. past grouping) updates without a full reload.
+    private func applyStatusLocally(_ newStatus: OrderStatus) {
+        if let idx = appState.storeOrders.firstIndex(where: { $0.id == order.id }) {
+            appState.storeOrders[idx].status = newStatus
+        }
+        if let idx = appState.orders.firstIndex(where: { $0.id == order.id }) {
+            appState.orders[idx].status = newStatus
+        }
     }
 }

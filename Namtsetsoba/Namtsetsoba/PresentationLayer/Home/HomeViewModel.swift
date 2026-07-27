@@ -60,6 +60,8 @@ final class HomeViewModel {
         switch selectedSort {
         case .price:
             result.sort { $0.discountedPrice < $1.discountedPrice }
+        case .rating:
+            result.sort { $0.store.displayRating > $1.store.displayRating }
         case .distance:
             result.sort {
                 (distanceToStore($0.store) ?? .infinity) < (distanceToStore($1.store) ?? .infinity)

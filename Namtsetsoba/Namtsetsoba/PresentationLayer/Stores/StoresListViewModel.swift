@@ -63,13 +63,13 @@ final class StoresListViewModel {
 
         switch selectedSort {
         case .rating:
-            result.sort { $0.rating > $1.rating }
+            result.sort { $0.displayRating > $1.displayRating }
         case .name:
             result.sort { $0.name < $1.name }
         case .openNow:
             result.sort { lhs, rhs in
                 if lhs.isOpenNow != rhs.isOpenNow { return lhs.isOpenNow }
-                return lhs.rating > rhs.rating
+                return lhs.displayRating > rhs.displayRating
             }
         case .distance:
             result.sort {

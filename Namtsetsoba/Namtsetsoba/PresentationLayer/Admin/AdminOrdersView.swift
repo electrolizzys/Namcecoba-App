@@ -18,38 +18,46 @@ struct AdminOrdersView: View {
 
             if viewModel.isLoading && viewModel.orders.isEmpty {
                 ProgressView()
+                    .adminCardRow()
             } else if viewModel.filteredOrders.isEmpty {
                 Text("No orders found.")
                     .foregroundStyle(.secondary)
+                    .adminCardRow()
             } else {
                 ForEach(viewModel.filteredOrders) { order in
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text(order.basket.title).font(.headline)
-                            Spacer()
-                            Text(order.status.displayName)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(order.status.color)
-                        }
-                        Text(order.basket.store.name)
-                            .font(.subheadline)
+                    AdminRowCard {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(alignment: .top) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(order.basket.title).font(.headline)
+                                    Text(order.basket.store.name)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                AdminStatusPill(text: order.status.displayName, color: order.status.color)
+                            }
+                            HStack {
+                                Label(Utilities.formatOrderDate(order.orderDate), systemImage: "calendar")
+                                Spacer()
+                                Text(Utilities.formatMoneyGel(order.totalPaid))
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.primary)
+                            }
+                            .font(.caption)
                             .foregroundStyle(.secondary)
-                        HStack {
-                            Text(Utilities.formatOrderDate(order.orderDate))
-                            Spacer()
-                            Text(Utilities.formatMoneyGel(order.totalPaid)).fontWeight(.semibold)
+
+                            Text("Code \(order.pickupCode)")
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
                         }
-                        .font(.caption)
-                        Text("Code \(order.pickupCode)")
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
                     }
-                    .padding(.vertical, 4)
+                    .adminCardRow()
                 }
             }
 
             if let error = viewModel.errorMessage {
-                Text(error).foregroundStyle(.red).font(.caption)
+                Text(error).foregroundStyle(.red).font(.caption).adminCardRow()
             }
         }
         .scrollContentBackground(.hidden)

@@ -7,6 +7,7 @@ struct ProfileView: View {
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(\.mainTabSelection) private var mainTabSelection
     @State private var viewModel = ProfileViewModel()
+    @State private var localization = LocalizationManager.shared
     @State private var showEditProfile = false
     @State private var logoPickerItem: PhotosPickerItem?
     @State private var logoUploading = false
@@ -35,7 +36,7 @@ struct ProfileView: View {
                     }
                 }
 
-                Section("Activity") {
+                Section(L(.profileActivity)) {
                     if appState.currentRole == .business {
                         Button {
                             mainTabSelection?.openMyProductsTab()
@@ -51,6 +52,12 @@ struct ProfileView: View {
                         } label: {
                             Label("Incoming orders", systemImage: "bag.fill")
                         }
+
+                        NavigationLink {
+                            VenueAnalyticsView()
+                        } label: {
+                            Label(L(.profileVenueAnalytics), systemImage: "chart.bar.xaxis")
+                        }
                     } else {
                         Button {
                             mainTabSelection?.openOrders(isBusiness: false)
@@ -62,6 +69,12 @@ struct ProfileView: View {
                             FavouriteStoresView()
                         } label: {
                             Label("\(appState.frequentStoreIds.count) favorite stores", systemImage: "heart.fill")
+                        }
+
+                        NavigationLink {
+                            CustomerAnalyticsView()
+                        } label: {
+                            Label(L(.profileMyImpact), systemImage: "chart.bar.xaxis")
                         }
                     }
                 }
@@ -98,12 +111,23 @@ struct ProfileView: View {
                     }
                 }
 
+                Section(L(.profileSettings)) {
+                    Picker(selection: languageBinding) {
+                        ForEach(AppLanguage.allCases) { lang in
+                            Text("\(lang.flag)  \(lang.displayName)").tag(lang)
+                        }
+                    } label: {
+                        Label(L(.profileLanguage), systemImage: "globe")
+                    }
+                    .pickerStyle(.menu)
+                }
+
                 Section("Support") {
                     if appState.currentRole == .admin {
                         NavigationLink {
                             AdminPanelView()
                         } label: {
-                            Label("Admin Panel", systemImage: "shield.lefthalf.filled")
+                            Label(L(.profileAdminPanel), systemImage: "shield.lefthalf.filled")
                         }
                     }
                     NavigationLink {
@@ -132,14 +156,14 @@ struct ProfileView: View {
                     } label: {
                         HStack {
                             Image(systemName: "rectangle.portrait.and.arrow.right")
-                            Text("Sign Out")
+                            Text(L(.profileSignOut))
                         }
                     }
                 }
             }
             .scrollContentBackground(.hidden)
             .lightGreenScreenStyle()
-            .navigationTitle("Profile")
+            .navigationTitle(L(.profileTitle))
             .refreshable {
                 _ = await appState.loadUserInfo()
                 await appState.loadOrders()
@@ -148,6 +172,13 @@ struct ProfileView: View {
                 EditProfileView()
             }
         }
+    }
+
+    private var languageBinding: Binding<AppLanguage> {
+        Binding(
+            get: { localization.language },
+            set: { localization.language = $0 }
+        )
     }
 
     private var profileHeaderAvatar: some View {

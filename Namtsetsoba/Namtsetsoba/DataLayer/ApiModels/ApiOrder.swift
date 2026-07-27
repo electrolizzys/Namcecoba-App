@@ -3,6 +3,7 @@ import Foundation
 /// API representation of a row in the `orders` table.
 struct ApiOrder: Decodable {
     let id: UUID
+    let userId: UUID?
     let basketId: UUID
     let status: String
     let pickupCode: String
@@ -11,6 +12,7 @@ struct ApiOrder: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id, status
+        case userId = "user_id"
         case basketId = "basket_id"
         case pickupCode = "pickup_code"
         case totalPaid = "total_paid"
@@ -25,7 +27,8 @@ struct ApiOrder: Decodable {
             status: OrderStatus(rawValue: status) ?? .confirmed,
             pickupCode: pickupCode,
             orderDate: ISO8601DateCoding.date(from: createdAt),
-            totalPaid: Decimal(totalPaid)
+            totalPaid: Decimal(totalPaid),
+            userId: userId
         )
     }
 }

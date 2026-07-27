@@ -20,6 +20,7 @@ final class AppContainer {
     let favouriteGateway: FavouriteGateway
     let deviceTokenGateway: DeviceTokenGateway
     let adminGateway: AdminGateway
+    let ratingGateway: RatingGateway
 
     init(
         authGateway: AuthGateway = ApiAuthGateway(),
@@ -29,7 +30,8 @@ final class AppContainer {
         notificationGateway: NotificationGateway = ApiNotificationGateway(),
         favouriteGateway: FavouriteGateway = ApiFavouriteGateway(),
         deviceTokenGateway: DeviceTokenGateway = ApiDeviceTokenGateway(),
-        adminGateway: AdminGateway? = nil
+        adminGateway: AdminGateway? = nil,
+        ratingGateway: RatingGateway = ApiRatingGateway()
     ) {
         self.authGateway = authGateway
         self.profileGateway = profileGateway
@@ -40,6 +42,7 @@ final class AppContainer {
         self.favouriteGateway = favouriteGateway
         self.deviceTokenGateway = deviceTokenGateway
         self.adminGateway = adminGateway ?? ApiAdminGateway(basketGateway: basketGateway)
+        self.ratingGateway = ratingGateway
     }
 
     // MARK: - Auth use cases
@@ -95,6 +98,16 @@ final class AppContainer {
 
     var registerDeviceToken: RegisterDeviceTokenUseCase { RegisterDeviceTokenUseCaseImpl(gateway: deviceTokenGateway) }
     var removeDeviceToken: RemoveDeviceTokenUseCase { RemoveDeviceTokenUseCaseImpl(gateway: deviceTokenGateway) }
+
+    // MARK: - Rating use cases
+
+    var submitRating: SubmitRatingUseCase { SubmitRatingUseCaseImpl(gateway: ratingGateway) }
+    var fetchRatedOrderIds: FetchRatedOrderIdsUseCase { FetchRatedOrderIdsUseCaseImpl(gateway: ratingGateway) }
+
+    // MARK: - Analytics use cases
+
+    var computeVenueAnalytics: ComputeVenueAnalyticsUseCase { ComputeVenueAnalyticsUseCaseImpl() }
+    var computeCustomerAnalytics: ComputeCustomerAnalyticsUseCase { ComputeCustomerAnalyticsUseCaseImpl() }
 
     // MARK: - Admin use cases
 

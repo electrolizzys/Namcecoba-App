@@ -99,7 +99,7 @@ struct BasketDetailView: View {
             HStack(spacing: 2) {
                 Image(systemName: "star.fill")
                     .foregroundStyle(.orange)
-                Text(String(format: "%.1f", basket.store.rating))
+                Text(basket.store.displayRatingText)
                     .font(.subheadline.bold())
             }
         }

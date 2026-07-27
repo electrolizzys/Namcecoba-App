@@ -6,6 +6,8 @@ struct OrdersView: View {
     @State private var isMarkingAll = false
     @State private var navigationPath: [Order] = []
     @State private var showMap = false
+    @State private var ratingOrder: Order?
+    @State private var didOfferRating = false
 
     var body: some View {
         @Bindable var viewModel = viewModel
@@ -15,7 +17,7 @@ struct OrdersView: View {
                 AppScreenHeader(
                     searchPlaceholder: appState.currentRole == .business
                         ? "Search by store or pickup code"
-                        : "Search by store",
+                        : L(.ordersSearchPlaceholder),
                     searchText: $viewModel.searchText
                 )
                 .zIndex(1)
@@ -30,19 +32,37 @@ struct OrdersView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .brandedListScreenStyle()
-            .navigationTitle(appState.currentRole == .business ? "Incoming Orders" : "Orders")
+            .navigationTitle(appState.currentRole == .business ? "Incoming Orders" : L(.ordersTitle))
             .toolbar(.hidden, for: .tabBar)
             .mapExploreToolbarItem(isPresented: $showMap)
             .refreshable {
                 await appState.loadOrders()
                 await appState.loadNotifications()
+                offerRatingIfNeeded()
             }
         }
         .task {
             await openPendingOrderIfNeeded()
+            offerRatingIfNeeded()
         }
         .onChange(of: appState.pendingOrderNavigationId) { _, _ in
             Task { await openPendingOrderIfNeeded() }
+        }
+        .onChange(of: appState.orders) { _, _ in
+            offerRatingIfNeeded()
+        }
+        .sheet(item: $ratingOrder) { order in
+            RateOrderView(order: order)
+        }
+    }
+
+    /// Auto-presents the rating sheet once for the newest un-rated picked-up order.
+    private func offerRatingIfNeeded() {
+        guard appState.currentRole != .business, !didOfferRating else { return }
+        if let order = appState.pendingRatingOrder {
+            ratingOrder = order
+            didOfferRating = true
+            appState.markRatingOffered(order.id)
         }
     }
 

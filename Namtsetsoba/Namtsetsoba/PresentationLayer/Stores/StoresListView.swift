@@ -12,7 +12,7 @@ struct StoresListView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 AppListControlsHeader(
-                    searchPlaceholder: "Search stores",
+                    searchPlaceholder: L(.storesSearchPlaceholder),
                     searchText: $viewModel.searchQuery,
                     sortLabel: viewModel.sortLabel,
                     selectedCategory: $viewModel.selectedCategory
@@ -65,7 +65,7 @@ struct StoresListView: View {
                 }
                 .background(DesignTokens.selectedChipBackground)
             }
-            .navigationTitle("Stores")
+            .navigationTitle(L(.storesTitle))
             .brandedListScreenStyle()
             .toolbar(.hidden, for: .tabBar)
             .mapExploreToolbarItem(isPresented: $showMap)
@@ -86,8 +86,8 @@ struct StoresListView: View {
     private var emptyState: some View {
         AppEmptyState(
             icon: "storefront",
-            title: "No stores found",
-            message: "Try adjusting your filters or search"
+            title: L(.storesEmptyTitle),
+            message: L(.storesEmptyMessage)
         )
     }
 }
@@ -116,7 +116,7 @@ struct StoreListCard: View {
                         HStack(spacing: 2) {
                             Image(systemName: "star.fill")
                                 .foregroundStyle(.orange)
-                            Text(String(format: "%.1f", store.rating))
+                            Text(store.displayRatingText)
                                 .fontWeight(.medium)
                         }
                         .font(.caption)

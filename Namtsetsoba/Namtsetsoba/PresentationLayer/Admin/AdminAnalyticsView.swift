@@ -3,71 +3,62 @@ import SwiftUI
 struct AdminAnalyticsView: View {
     @State private var viewModel = AdminAnalyticsViewModel()
 
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+
     var body: some View {
         @Bindable var viewModel = viewModel
 
-        List {
-            Section {
+        ScrollView {
+            VStack(spacing: 16) {
                 Picker("Period", selection: $viewModel.period) {
                     ForEach(SalesPeriod.allCases) { period in
                         Text(period.displayName).tag(period)
                     }
                 }
                 .pickerStyle(.segmented)
-                .listRowBackground(Color.clear)
                 .onChange(of: viewModel.period) { _, _ in
                     Task { await viewModel.load() }
                 }
-            }
 
-            if viewModel.isLoading && viewModel.snapshot == nil {
-                ProgressView()
-            } else if let snapshot = viewModel.snapshot {
-                Section("Order status breakdown") {
-                    ForEach(OrderStatus.allCases, id: \.self) { status in
-                        HStack {
-                            Text(status.displayName)
-                            Spacer()
-                            Text("\(snapshot.statusCounts[status] ?? 0)")
-                                .fontWeight(.semibold)
+                if viewModel.isLoading && viewModel.snapshot == nil {
+                    ProgressView().padding(.top, 40)
+                } else if let snapshot = viewModel.snapshot {
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        AdminStatCard(icon: "xmark.bin.fill", title: "Cancel rate",
+                                      value: String(format: "%.0f%%", snapshot.cancelRate * 100),
+                                      tint: snapshot.cancelRate > 0.2 ? AdminPalette.red : AdminPalette.blue)
+                        AdminStatCard(icon: "arrow.triangle.2.circlepath", title: "Repeat customers",
+                                      value: String(format: "%.0f%%", snapshot.repeatCustomerRate * 100),
+                                      tint: AdminPalette.purple)
+                        AdminStatCard(icon: "creditcard.fill", title: "Avg order value",
+                                      value: Utilities.formatMoneyGel(snapshot.averageOrderValue),
+                                      tint: AdminPalette.green)
+                        AdminStatCard(icon: "person.2.fill", title: "Repeat = 2+ pickups",
+                                      value: "≥2", tint: AdminPalette.teal)
+                    }
+
+                    AdminSectionCard(title: "Order status breakdown", icon: "chart.bar.fill") {
+                        ForEach(Array(OrderStatus.allCases.enumerated()), id: \.element) { index, status in
+                            if index > 0 { Divider() }
+                            AdminMetricRow(
+                                title: status.displayName,
+                                value: "\(snapshot.statusCounts[status] ?? 0)",
+                                tint: status.color
+                            )
                         }
                     }
                 }
 
-                Section("Key rates") {
-                    HStack {
-                        Text("Cancel rate")
-                        Spacer()
-                        Text(String(format: "%.0f%%", snapshot.cancelRate * 100))
-                            .fontWeight(.semibold)
-                    }
-                    HStack {
-                        Text("Repeat customers")
-                        Spacer()
-                        Text(String(format: "%.0f%%", snapshot.repeatCustomerRate * 100))
-                            .fontWeight(.semibold)
-                    }
-                    Text("Share of customers with 2+ picked-up orders in this period.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Section("Average order value") {
-                    HStack {
-                        Text("AOV (picked up)")
-                        Spacer()
-                        Text(Utilities.formatMoneyGel(snapshot.averageOrderValue))
-                            .fontWeight(.semibold)
-                    }
+                if let error = viewModel.errorMessage {
+                    Text(error).foregroundStyle(.red).font(.caption)
                 }
             }
-
-            if let error = viewModel.errorMessage {
-                Text(error).foregroundStyle(.red).font(.caption)
-            }
+            .padding(16)
         }
-        .scrollContentBackground(.hidden)
-        .lightGreenScreenStyle()
+        .background(DesignTokens.selectedChipBackground)
         .navigationTitle("Statistics")
         .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.load() }
