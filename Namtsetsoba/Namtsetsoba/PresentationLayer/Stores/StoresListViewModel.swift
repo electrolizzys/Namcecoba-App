@@ -18,6 +18,16 @@ enum StoreSortOption: String, CaseIterable, Identifiable {
         case .distance: "location.fill"
         }
     }
+
+    /// Localized, user-facing sort label.
+    var localizedName: String {
+        switch self {
+        case .rating: L(.sortTopRated)
+        case .name: L(.sortName)
+        case .openNow: L(.sortOpenNow)
+        case .distance: L(.sortDistance)
+        }
+    }
 }
 
 /// Loads and filters the list of stores for the Stores tab.
@@ -40,7 +50,7 @@ final class StoresListViewModel {
     }
 
     var sortLabel: String {
-        showFavouritesOnly ? "Favourites" : selectedSort.rawValue
+        showFavouritesOnly ? L(.sortFavouritesLabel) : selectedSort.localizedName
     }
 
     var filteredStores: [Store] {

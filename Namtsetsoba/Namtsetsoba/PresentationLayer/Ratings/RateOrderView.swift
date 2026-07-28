@@ -27,11 +27,11 @@ struct RateOrderView: View {
             }
             .padding(DesignTokens.padding)
             .background(DesignTokens.selectedChipBackground)
-            .navigationTitle("Rate your pickup")
+            .navigationTitle(L(.rateTitle))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Not now") { dismiss() }
+                    Button(L(.rateNotNow)) { dismiss() }
                 }
             }
         }
@@ -43,7 +43,7 @@ struct RateOrderView: View {
             StoreThumbnailView(store: order.basket.store, size: 64)
             Text(order.basket.store.name)
                 .font(.title3.bold())
-            Text("How was “\(order.basket.title)”?")
+            Text(String(format: L(.rateHowWas), order.basket.title))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -72,10 +72,10 @@ struct RateOrderView: View {
 
     private var commentField: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Add a comment (optional)")
+            Text(L(.rateCommentLabel))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            TextField("What stood out?", text: $viewModel.comment, axis: .vertical)
+            TextField(L(.rateCommentPlaceholder), text: $viewModel.comment, axis: .vertical)
                 .lineLimit(2...4)
                 .padding(12)
                 .background(Color(.systemBackground))
@@ -93,7 +93,7 @@ struct RateOrderView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
             } else {
-                Text("Submit rating")
+                Text(L(.rateSubmit))
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -110,7 +110,7 @@ struct RateOrderView: View {
     @MainActor
     private func submit() async {
         guard let userId = appState.userId else {
-            viewModel.errorMessage = "Please sign in again to rate."
+            viewModel.errorMessage = L(.rateSignInError)
             return
         }
         let success = await viewModel.submit(

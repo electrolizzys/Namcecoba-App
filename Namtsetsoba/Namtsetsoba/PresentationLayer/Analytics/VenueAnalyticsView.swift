@@ -13,64 +13,64 @@ struct VenueAnalyticsView: View {
                 AnalyticsPeriodPicker(selection: $viewModel.period)
 
                 AnalyticsHeroCard(
-                    title: "Your income",
+                    title: L(.venueYourIncome),
                     value: Utilities.formatMoneyGel(viewModel.analytics.storeIncome),
-                    caption: "After \(Self.commissionPercent) platform fee · \(viewModel.period.displayName.lowercased())",
+                    caption: String(format: L(.venueIncomeCaption), Self.commissionPercent, viewModel.period.localizedName),
                     systemImage: "banknote.fill"
                 )
 
                 AnalyticsStatGrid {
                     AnalyticsStatCard(
-                        title: "Bags sold",
+                        title: L(.venueBagsSold),
                         value: "\(viewModel.analytics.pickedUpCount)",
                         systemImage: "bag.fill.badge.checkmark"
                     )
                     AnalyticsStatCard(
-                        title: "Active orders",
+                        title: L(.venueActiveOrders),
                         value: "\(viewModel.analytics.activeOrderCount)",
                         systemImage: "clock.badge.fill",
                         tint: Color(red: 0.23, green: 0.51, blue: 0.96)
                     )
                     AnalyticsStatCard(
-                        title: "Avg. order value",
+                        title: L(.venueAvgOrderValue),
                         value: Utilities.formatMoneyGel(viewModel.analytics.averageOrderValue),
                         systemImage: "cart.fill",
                         tint: DesignTokens.accentOrange
                     )
                     AnalyticsStatCard(
-                        title: "Pickup rate",
+                        title: L(.venuePickupRate),
                         value: percent(viewModel.analytics.pickupRate),
                         systemImage: "checkmark.seal.fill"
                     )
                 }
 
-                AnalyticsSectionCard(title: "Revenue breakdown") {
+                AnalyticsSectionCard(title: L(.venueRevenueBreakdown)) {
                     AnalyticsRow(
-                        title: "Gross revenue",
+                        title: L(.venueGrossRevenue),
                         value: Utilities.formatMoneyGel(viewModel.analytics.grossRevenue)
                     )
                     AnalyticsRow(
-                        title: "Platform fee (\(Self.commissionPercent))",
+                        title: String(format: L(.venuePlatformFee), Self.commissionPercent),
                         value: "-\(Utilities.formatMoneyGel(viewModel.analytics.platformFee))",
                         tint: .red
                     )
                     Divider()
                     AnalyticsRow(
-                        title: "Your income",
+                        title: L(.venueYourIncome),
                         value: Utilities.formatMoneyGel(viewModel.analytics.storeIncome),
                         tint: DesignTokens.primaryGreen
                     )
                 }
 
-                AnalyticsSectionCard(title: "Orders") {
-                    AnalyticsRow(title: "Picked up", value: "\(viewModel.analytics.pickedUpCount)")
-                    AnalyticsRow(title: "Cancelled", value: "\(viewModel.analytics.cancelledCount)")
-                    AnalyticsRow(title: "Awaiting pickup now", value: "\(viewModel.analytics.activeOrderCount)")
+                AnalyticsSectionCard(title: L(.venueOrders)) {
+                    AnalyticsRow(title: L(.venuePickedUp), value: "\(viewModel.analytics.pickedUpCount)")
+                    AnalyticsRow(title: L(.venueCancelled), value: "\(viewModel.analytics.cancelledCount)")
+                    AnalyticsRow(title: L(.venueAwaitingPickup), value: "\(viewModel.analytics.activeOrderCount)")
                 }
 
-                AnalyticsSectionCard(title: "Customers") {
-                    AnalyticsRow(title: "Unique customers", value: "\(viewModel.analytics.uniqueCustomers)")
-                    AnalyticsRow(title: "Repeat customers", value: percent(viewModel.analytics.repeatCustomerRate))
+                AnalyticsSectionCard(title: L(.venueCustomers)) {
+                    AnalyticsRow(title: L(.venueUniqueCustomers), value: "\(viewModel.analytics.uniqueCustomers)")
+                    AnalyticsRow(title: L(.venueRepeatCustomers), value: percent(viewModel.analytics.repeatCustomerRate))
                 }
 
                 ratingCard(viewModel.analytics)
@@ -78,9 +78,10 @@ struct VenueAnalyticsView: View {
                 impactCard(viewModel.analytics)
             }
             .padding(DesignTokens.padding)
+            .padding(.bottom, DesignTokens.floatingTabBarClearance)
         }
         .background(DesignTokens.selectedChipBackground)
-        .navigationTitle("Sales & Analytics")
+        .navigationTitle(L(.profileVenueAnalytics))
         .navigationBarTitleDisplayMode(.inline)
         .overlay {
             if viewModel.isLoading && viewModel.analytics.pickedUpCount == 0 {
@@ -101,7 +102,7 @@ struct VenueAnalyticsView: View {
                 averageSavingsPercent: analytics.averageSavingsPercent
             ))
 
-        return AnalyticsSectionCard(title: "Customer rating") {
+        return AnalyticsSectionCard(title: L(.venueCustomerRating)) {
             HStack(spacing: 10) {
                 Image(systemName: "star.fill")
                     .font(.title)
@@ -110,8 +111,8 @@ struct VenueAnalyticsView: View {
                     Text(value)
                         .font(.title2.bold())
                     Text(hasRatings
-                         ? "\(store.ratingCount) customer rating\(store.ratingCount == 1 ? "" : "s")"
-                         : "Estimated · no ratings yet")
+                         ? String(format: L(.venueRatingsCount), store.ratingCount)
+                         : L(.venueEstimatedNoRatings))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -121,15 +122,15 @@ struct VenueAnalyticsView: View {
     }
 
     private func impactCard(_ analytics: VenueAnalytics) -> some View {
-        AnalyticsSectionCard(title: "Impact you created") {
-            AnalyticsRow(title: "Meals rescued", value: "\(analytics.mealsSaved)")
+        AnalyticsSectionCard(title: L(.venueImpactCreated)) {
+            AnalyticsRow(title: L(.venueMealsRescued), value: "\(analytics.mealsSaved)")
             AnalyticsRow(
-                title: "Customer savings",
+                title: L(.venueCustomerSavings),
                 value: Utilities.formatMoneyGel(analytics.customerSavings),
                 tint: DesignTokens.primaryGreen
             )
             AnalyticsRow(
-                title: "CO₂ avoided",
+                title: L(.analyticsCO2Avoided),
                 value: String(format: "%.1f kg", analytics.co2SavedKg),
                 tint: DesignTokens.primaryGreen
             )

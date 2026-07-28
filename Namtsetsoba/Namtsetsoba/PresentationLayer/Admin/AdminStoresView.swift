@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct AdminStoresView: View {
+    @Environment(\.mainTabSelection) private var mainTabSelection
     @State private var viewModel = AdminStoresViewModel()
-    @State private var showAdd = false
     @State private var editingStore: Store?
 
     var body: some View {
@@ -11,7 +11,7 @@ struct AdminStoresView: View {
                 if viewModel.isLoading && viewModel.stores.isEmpty {
                     ProgressView().padding(.top, 40)
                 } else if viewModel.stores.isEmpty {
-                    Text("No stores yet.")
+                    Text(L(.adminNoStores))
                         .foregroundStyle(.secondary)
                         .padding(.top, 40)
                 } else {
@@ -25,6 +25,7 @@ struct AdminStoresView: View {
                 }
             }
             .padding(16)
+            .padding(.bottom, DesignTokens.floatingTabBarClearance)
         }
         .background(DesignTokens.selectedChipBackground)
         .navigationTitle(L(.tabStores))
@@ -32,16 +33,9 @@ struct AdminStoresView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    showAdd = true
+                    mainTabSelection?.openAdminAddVenue()
                 } label: {
                     Image(systemName: "plus")
-                }
-            }
-        }
-        .sheet(isPresented: $showAdd) {
-            NavigationStack {
-                AdminStoreFormView {
-                    Task { await viewModel.load() }
                 }
             }
         }
@@ -53,6 +47,7 @@ struct AdminStoresView: View {
             }
         }
         .task { await viewModel.load() }
+        .onAppear { Task { await viewModel.load() } }
         .refreshable { await viewModel.load() }
     }
 

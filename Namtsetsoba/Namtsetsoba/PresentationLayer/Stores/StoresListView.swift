@@ -28,7 +28,7 @@ struct StoresListView: View {
                             viewModel.showFavouritesOnly = false
                             viewModel.selectedSort = option
                         } label: {
-                            Label(option.rawValue, systemImage: option.systemImage)
+                            Label(option.localizedName, systemImage: option.systemImage)
                         }
                     }
                     Divider()

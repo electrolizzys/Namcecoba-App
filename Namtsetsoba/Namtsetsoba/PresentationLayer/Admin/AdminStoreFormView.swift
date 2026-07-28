@@ -59,6 +59,7 @@ struct AdminAddVenueView: View {
                 createButton
             }
             .padding(20)
+            .padding(.bottom, DesignTokens.floatingTabBarClearance)
         }
         .background(DesignTokens.selectedChipBackground)
         .navigationTitle(L(.tabAddVenue))
@@ -86,7 +87,7 @@ struct AdminAddVenueView: View {
                 if viewModel.isSaving {
                     ProgressView().tint(.white)
                 } else {
-                    Label("Create venue", systemImage: "checkmark.circle.fill")
+                    Label(L(.formCreateVenue), systemImage: "checkmark.circle.fill")
                         .font(.headline)
                 }
             }
@@ -102,7 +103,7 @@ struct AdminAddVenueView: View {
     }
 
     private var successToast: some View {
-        Label("Venue created", systemImage: "checkmark.seal.fill")
+        Label(L(.formVenueCreated), systemImage: "checkmark.seal.fill")
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(.white)
             .padding(.horizontal, 18)
@@ -159,7 +160,7 @@ private struct StoreFormContent: View {
     // MARK: Cards
 
     private var photoCard: some View {
-        card("Store photo", icon: "photo.on.rectangle.angled") {
+        card(L(.formStorePhoto), icon: "photo.on.rectangle.angled") {
             HStack(spacing: 16) {
                 ZStack {
                     Circle().fill(Color(.secondarySystemBackground))
@@ -178,11 +179,11 @@ private struct StoreFormContent: View {
                 .overlay(Circle().strokeBorder(Color(.separator).opacity(0.3), lineWidth: 1))
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Shown to customers on Offers and Stores.")
+                    Text(L(.formPhotoHint))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     PhotosPicker(selection: $photoItem, matching: .images) {
-                        Label(previewImage == nil ? "Choose photo" : "Change photo",
+                        Label(previewImage == nil ? L(.formChoosePhoto) : L(.formChangePhoto),
                               systemImage: "photo")
                             .font(.subheadline.weight(.semibold))
                     }
@@ -193,9 +194,9 @@ private struct StoreFormContent: View {
     }
 
     private var detailsCard: some View {
-        card("Store details", icon: "storefront.fill") {
-            field("Name", text: $viewModel.name)
-            field("Address", text: $viewModel.address)
+        card(L(.formStoreDetails), icon: "storefront.fill") {
+            field(L(.formName), text: $viewModel.name)
+            field(L(.formAddress), text: $viewModel.address)
             Menu {
                 ForEach(ProductCategory.allCases) { category in
                     Button {
@@ -222,8 +223,8 @@ private struct StoreFormContent: View {
     }
 
     private var locationCard: some View {
-        card("Location", icon: "mappin.and.ellipse") {
-            Text("Tap the map to drop the pin on the venue.")
+        card(L(.formLocation), icon: "mappin.and.ellipse") {
+            Text(L(.formTapMap))
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -249,7 +250,7 @@ private struct StoreFormContent: View {
                     .foregroundStyle(DesignTokens.primaryGreen)
                 Text(viewModel.hasCoordinate
                      ? "\(viewModel.latitude), \(viewModel.longitude)"
-                     : "No location selected")
+                     : L(.formNoLocation))
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
             }
@@ -257,23 +258,23 @@ private struct StoreFormContent: View {
     }
 
     private var hoursCard: some View {
-        card("Opening hours", icon: "clock.fill") {
-            DatePicker("Opens", selection: $viewModel.openTimeDate, displayedComponents: .hourAndMinute)
-            DatePicker("Closes", selection: $viewModel.closeTimeDate, displayedComponents: .hourAndMinute)
+        card(L(.formOpeningHours), icon: "clock.fill") {
+            DatePicker(L(.formOpens), selection: $viewModel.openTimeDate, displayedComponents: .hourAndMinute)
+            DatePicker(L(.formCloses), selection: $viewModel.closeTimeDate, displayedComponents: .hourAndMinute)
         }
     }
 
     private var accountCard: some View {
-        card("Venue account", icon: "person.badge.key.fill") {
-            field("Username", text: $viewModel.accountUsername, autocap: .never)
-            field("Email", text: $viewModel.accountEmail, keyboard: .emailAddress, autocap: .never)
-            SecureField("Temporary password", text: $viewModel.temporaryPassword)
+        card(L(.formVenueAccount), icon: "person.badge.key.fill") {
+            field(L(.authUsername), text: $viewModel.accountUsername, autocap: .never)
+            field(L(.authEmail), text: $viewModel.accountEmail, keyboard: .emailAddress, autocap: .never)
+            SecureField(L(.formTempPassword), text: $viewModel.temporaryPassword)
                 .textContentType(.oneTimeCode)
                 .padding(.horizontal, 14)
                 .frame(height: 48)
                 .background(Color(.secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            Text("Creates a venue login linked to this store. Share the temporary password securely.")
+            Text(L(.formAccountHint))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

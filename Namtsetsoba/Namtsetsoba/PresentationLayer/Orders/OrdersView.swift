@@ -16,7 +16,7 @@ struct OrdersView: View {
             VStack(spacing: 0) {
                 AppScreenHeader(
                     searchPlaceholder: appState.currentRole == .business
-                        ? "Search by store or pickup code"
+                        ? L(.ordersBusinessSearch)
                         : L(.ordersSearchPlaceholder),
                     searchText: $viewModel.searchText
                 )
@@ -32,7 +32,7 @@ struct OrdersView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .brandedListScreenStyle()
-            .navigationTitle(appState.currentRole == .business ? "Incoming Orders" : L(.ordersTitle))
+            .navigationTitle(appState.currentRole == .business ? L(.ordersIncomingTitle) : L(.ordersTitle))
             .toolbar(.hidden, for: .tabBar)
             .mapExploreToolbarItem(isPresented: $showMap)
             .refreshable {
@@ -73,8 +73,8 @@ struct OrdersView: View {
             if viewModel.filtered(appState.orders).isEmpty {
                 emptyState(
                     message: viewModel.searchText.isEmpty
-                        ? "Your orders will appear here after you place one"
-                        : "No orders match your search"
+                        ? L(.ordersCustomerEmpty)
+                        : L(.ordersNoMatch)
                 )
             } else {
                 customerOrderList(appState.orders)
@@ -95,7 +95,7 @@ struct OrdersView: View {
                         }
                     }
                 } header: {
-                    ordersSectionHeader("Active Orders (\(active.count))")
+                    ordersSectionHeader("\(L(.ordersActiveOrders)) (\(active.count))")
                 }
             }
 
@@ -107,7 +107,7 @@ struct OrdersView: View {
                         }
                     }
                 } label: {
-                    Text("Past Orders (\(past.count))")
+                    Text("\(L(.ordersPastOrders)) (\(past.count))")
                 }
             }
         }
@@ -124,8 +124,8 @@ struct OrdersView: View {
             if viewModel.filtered(appState.storeOrders).isEmpty {
                 emptyState(
                     message: viewModel.searchText.isEmpty
-                        ? "Orders from customers will appear here"
-                        : "No orders match your search"
+                        ? L(.ordersStoreEmpty)
+                        : L(.ordersNoMatch)
                 )
             } else {
                 storeOrderList(appState.storeOrders)
@@ -147,7 +147,7 @@ struct OrdersView: View {
                         }
                     }
                 } header: {
-                    ordersSectionHeader("Active Orders (\(current.count))")
+                    ordersSectionHeader("\(L(.ordersActiveOrders)) (\(current.count))")
                 } footer: {
                     if !confirmedOnly.isEmpty {
                         Button {
@@ -160,7 +160,7 @@ struct OrdersView: View {
                                 } else {
                                     Image(systemName: "checkmark.circle.fill")
                                 }
-                                Text(confirmedOnly.count == 1 ? "Mark as Ready" : "Mark All as Ready (\(confirmedOnly.count))")
+                                Text(confirmedOnly.count == 1 ? L(.ordersMarkReadyOne) : String(format: L(.ordersMarkAllReady), confirmedOnly.count))
                             }
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.white)
@@ -175,7 +175,7 @@ struct OrdersView: View {
             }
 
             if !past.isEmpty {
-                DisclosureGroup("Past Orders (\(past.count))") {
+                DisclosureGroup("\(L(.ordersPastOrders)) (\(past.count))") {
                     ForEach(past) { order in
                         NavigationLink(value: order) {
                             OrderRow(order: order, isStoreView: true)
@@ -240,7 +240,7 @@ struct OrdersView: View {
             Image(systemName: "bag")
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
-            Text("No orders yet")
+            Text(L(.ordersEmptyTitle))
                 .font(.headline)
             Text(message)
                 .font(.subheadline)
@@ -264,7 +264,7 @@ struct OrderRow: View {
                 Text(order.basket.title)
                     .font(.headline)
                 Spacer()
-                Label(order.status.displayName, systemImage: order.status.systemImage)
+                Label(order.status.localizedName, systemImage: order.status.systemImage)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(order.status.color)
             }
@@ -286,7 +286,7 @@ struct OrderRow: View {
 
             if order.status == .confirmed || order.status == .readyForPickup {
                 HStack {
-                    Text("Pickup Code:")
+                    Text(L(.ordersPickupCodeLabel))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Text(order.pickupCode)

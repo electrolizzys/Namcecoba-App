@@ -29,7 +29,7 @@ final class AdminStoreFormViewModel {
     @ObservationIgnored private let uploadStoreLogo: UploadStoreLogoUseCase
 
     var isEditing: Bool { editingStore != nil }
-    var title: String { isEditing ? "Edit Store" : "Add Venue" }
+    var title: String { isEditing ? L(.formEditStoreTitle) : L(.tabAddVenue) }
 
     var parsedLatitude: Double? { Double(latitude.replacingOccurrences(of: ",", with: ".")) }
     var parsedLongitude: Double? { Double(longitude.replacingOccurrences(of: ",", with: ".")) }

@@ -15,7 +15,7 @@ struct AdminAnalyticsView: View {
             VStack(spacing: 16) {
                 Picker("Period", selection: $viewModel.period) {
                     ForEach(SalesPeriod.allCases) { period in
-                        Text(period.displayName).tag(period)
+                        Text(period.localizedName).tag(period)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -27,24 +27,24 @@ struct AdminAnalyticsView: View {
                     ProgressView().padding(.top, 40)
                 } else if let snapshot = viewModel.snapshot {
                     LazyVGrid(columns: columns, spacing: 12) {
-                        AdminStatCard(icon: "xmark.bin.fill", title: "Cancel rate",
+                        AdminStatCard(icon: "xmark.bin.fill", title: L(.adminCancelRate),
                                       value: String(format: "%.0f%%", snapshot.cancelRate * 100),
                                       tint: snapshot.cancelRate > 0.2 ? AdminPalette.red : AdminPalette.blue)
-                        AdminStatCard(icon: "arrow.triangle.2.circlepath", title: "Repeat customers",
+                        AdminStatCard(icon: "arrow.triangle.2.circlepath", title: L(.venueRepeatCustomers),
                                       value: String(format: "%.0f%%", snapshot.repeatCustomerRate * 100),
                                       tint: AdminPalette.purple)
-                        AdminStatCard(icon: "creditcard.fill", title: "Avg order value",
+                        AdminStatCard(icon: "creditcard.fill", title: L(.adminAvgOrderValue),
                                       value: Utilities.formatMoneyGel(snapshot.averageOrderValue),
                                       tint: AdminPalette.green)
-                        AdminStatCard(icon: "person.2.fill", title: "Repeat = 2+ pickups",
+                        AdminStatCard(icon: "person.2.fill", title: L(.adminRepeat2plus),
                                       value: "≥2", tint: AdminPalette.teal)
                     }
 
-                    AdminSectionCard(title: "Order status breakdown", icon: "chart.bar.fill") {
+                    AdminSectionCard(title: L(.adminOrderStatusBreakdown), icon: "chart.bar.fill") {
                         ForEach(Array(OrderStatus.allCases.enumerated()), id: \.element) { index, status in
                             if index > 0 { Divider() }
                             AdminMetricRow(
-                                title: status.displayName,
+                                title: status.localizedName,
                                 value: "\(snapshot.statusCounts[status] ?? 0)",
                                 tint: status.color
                             )
@@ -57,9 +57,10 @@ struct AdminAnalyticsView: View {
                 }
             }
             .padding(16)
+            .padding(.bottom, DesignTokens.floatingTabBarClearance)
         }
         .background(DesignTokens.selectedChipBackground)
-        .navigationTitle("Statistics")
+        .navigationTitle(L(.adminStatistics))
         .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.load() }
         .refreshable { await viewModel.load() }

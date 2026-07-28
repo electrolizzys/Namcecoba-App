@@ -11,7 +11,7 @@ struct AdminUsersView: View {
                 ProgressView()
                     .adminCardRow()
             } else if viewModel.filteredUsers.isEmpty {
-                Text("No users found.")
+                Text(L(.adminNoUsers))
                     .foregroundStyle(.secondary)
                     .adminCardRow()
             } else {
@@ -35,7 +35,7 @@ struct AdminUsersView: View {
                                     .lineLimit(1)
                             }
                             Spacer(minLength: 8)
-                            AdminStatusPill(text: user.role.displayName, color: roleColor(user.role))
+                            AdminStatusPill(text: user.role.localizedName, color: roleColor(user.role))
                         }
                     }
                     .adminCardRow()
@@ -48,9 +48,10 @@ struct AdminUsersView: View {
         }
         .scrollContentBackground(.hidden)
         .lightGreenScreenStyle()
-        .navigationTitle("Users")
+        .navigationTitle(L(.adminUsers))
         .navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $viewModel.searchText, prompt: "Search name, email, or id")
+        .searchable(text: $viewModel.searchText, prompt: L(.adminSearchUsers))
+        .clearsFloatingTabBar()
         .task { await viewModel.load() }
         .refreshable { await viewModel.load() }
     }

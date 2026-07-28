@@ -45,7 +45,7 @@ struct OrderDetailView: View {
             .padding(DesignTokens.padding)
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle("Order Details")
+        .navigationTitle(L(.orderDetailsTitle))
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showRating) {
             RateOrderView(order: order)
@@ -61,7 +61,7 @@ struct OrderDetailView: View {
             } label: {
                 HStack {
                     Image(systemName: "checkmark.seal.fill")
-                    Text("Confirm Pickup")
+                    Text(L(.orderConfirmPickup))
                         .fontWeight(.semibold)
                     if isUpdating {
                         Spacer()
@@ -75,22 +75,22 @@ struct OrderDetailView: View {
             }
             .disabled(isUpdating)
 
-            Text("Tap once you've collected your bag. This moves the order to your history.")
+            Text(L(.orderConfirmPickupHint))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
         .confirmationDialog(
-            "Confirm pickup?",
+            L(.orderConfirmPickupQuestion),
             isPresented: $showConfirmPickup,
             titleVisibility: .visible
         ) {
-            Button("Yes, I collected it") {
+            Button(L(.orderConfirmPickupYes)) {
                 Task { await confirmPickup() }
             }
-            Button("Cancel", role: .cancel) {}
+            Button(L(.commonCancel), role: .cancel) {}
         } message: {
-            Text("Only confirm after receiving your order from \(order.basket.store.name).")
+            Text(String(format: L(.orderConfirmPickupMessage), order.basket.store.name))
         }
     }
 
@@ -109,7 +109,7 @@ struct OrderDetailView: View {
 
     private var rateCard: some View {
         VStack(spacing: 12) {
-            Label("How was your pickup?", systemImage: "star.bubble.fill")
+            Label(L(.orderRatePrompt), systemImage: "star.bubble.fill")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -119,7 +119,7 @@ struct OrderDetailView: View {
             } label: {
                 HStack {
                     Image(systemName: "star.fill")
-                    Text("Rate \(order.basket.store.name)")
+                    Text(String(format: L(.orderRateStore), order.basket.store.name))
                         .fontWeight(.semibold)
                 }
                 .frame(maxWidth: .infinity)
@@ -142,7 +142,7 @@ struct OrderDetailView: View {
                 .foregroundStyle(currentStatus.color)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(currentStatus.displayName)
+                Text(currentStatus.localizedName)
                     .font(.title3.bold())
                     .foregroundStyle(currentStatus.color)
                 Text(Utilities.formatOrderDate(order.orderDate))
@@ -161,7 +161,7 @@ struct OrderDetailView: View {
 
     private var pickupCodeCard: some View {
         VStack(spacing: 12) {
-            Text("Pickup Code")
+            Text(L(.orderPickupCode))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -170,8 +170,8 @@ struct OrderDetailView: View {
 
             if currentStatus == .confirmed || currentStatus == .readyForPickup {
                 Text(isStoreView
-                     ? "Customer will show this code"
-                     : "Show this code at the store")
+                     ? L(.orderShowCodeStore)
+                     : L(.orderShowCodeCustomer))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -186,7 +186,7 @@ struct OrderDetailView: View {
 
     private var basketInfoCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(isStoreView ? "Order Contents" : "What you ordered",
+            Label(isStoreView ? L(.orderContentsStore) : L(.orderWhatYouOrdered),
                   systemImage: "bag.fill")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
@@ -221,7 +221,7 @@ struct OrderDetailView: View {
     private var storeCard: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Label("Pickup Location", systemImage: "mappin.circle.fill")
+                Label(L(.orderPickupLocation), systemImage: "mappin.circle.fill")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Text(order.basket.store.name)
@@ -249,7 +249,7 @@ struct OrderDetailView: View {
         VStack(spacing: 12) {
             if !isStoreView {
                 HStack {
-                    Text("Original price")
+                    Text(L(.orderOriginalPrice))
                         .foregroundStyle(.secondary)
                     Spacer()
                     Text(Utilities.formatMoneyGel(order.basket.originalPrice))
@@ -257,7 +257,7 @@ struct OrderDetailView: View {
                         .foregroundStyle(.secondary)
                 }
                 HStack {
-                    Text("You saved")
+                    Text(L(.orderYouSaved))
                         .foregroundStyle(DesignTokens.primaryGreen)
                     Spacer()
                     Text(Utilities.formatMoneyGel(order.basket.originalPrice - order.totalPaid))
@@ -267,7 +267,7 @@ struct OrderDetailView: View {
                 Divider()
             }
             HStack {
-                Text(isStoreView ? "Amount received" : "Total paid")
+                Text(isStoreView ? L(.orderAmountReceived) : L(.orderTotalPaid))
                     .font(.headline)
                 Spacer()
                 Text(Utilities.formatMoneyGel(order.totalPaid))
@@ -286,7 +286,7 @@ struct OrderDetailView: View {
         VStack(spacing: 12) {
             if currentStatus == .confirmed {
                 actionButton(
-                    title: "Mark as Ready for Pickup",
+                    title: L(.orderMarkReady),
                     icon: "bag.fill.badge.checkmark",
                     color: .blue
                 ) {
@@ -295,7 +295,7 @@ struct OrderDetailView: View {
             }
 
             actionButton(
-                title: "Order Picked Up",
+                title: L(.orderMarkPickedUp),
                 icon: "checkmark.seal.fill",
                 color: DesignTokens.primaryGreen
             ) {
@@ -303,7 +303,7 @@ struct OrderDetailView: View {
             }
 
             actionButton(
-                title: "Cancel Order",
+                title: L(.orderCancelOrder),
                 icon: "xmark.circle.fill",
                 color: .red
             ) {

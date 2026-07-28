@@ -8,10 +8,10 @@ struct AdminOrdersView: View {
 
         List {
             Section {
-                Picker("Status", selection: $viewModel.statusFilter) {
-                    Text("All").tag(OrderStatus?.none)
+                Picker(L(.adminStatusFilter), selection: $viewModel.statusFilter) {
+                    Text(L(.commonAll)).tag(OrderStatus?.none)
                     ForEach(OrderStatus.allCases, id: \.self) { status in
-                        Text(status.displayName).tag(Optional(status))
+                        Text(status.localizedName).tag(Optional(status))
                     }
                 }
             }
@@ -20,7 +20,7 @@ struct AdminOrdersView: View {
                 ProgressView()
                     .adminCardRow()
             } else if viewModel.filteredOrders.isEmpty {
-                Text("No orders found.")
+                Text(L(.adminNoOrders))
                     .foregroundStyle(.secondary)
                     .adminCardRow()
             } else {
@@ -35,7 +35,7 @@ struct AdminOrdersView: View {
                                         .foregroundStyle(.secondary)
                                 }
                                 Spacer()
-                                AdminStatusPill(text: order.status.displayName, color: order.status.color)
+                                AdminStatusPill(text: order.status.localizedName, color: order.status.color)
                             }
                             HStack {
                                 Label(Utilities.formatOrderDate(order.orderDate), systemImage: "calendar")
@@ -47,7 +47,7 @@ struct AdminOrdersView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
 
-                            Text("Code \(order.pickupCode)")
+                            Text("\(L(.orderPickupCode)) \(order.pickupCode)")
                                 .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
                         }
@@ -62,8 +62,9 @@ struct AdminOrdersView: View {
         }
         .scrollContentBackground(.hidden)
         .lightGreenScreenStyle()
-        .navigationTitle("Recent Orders")
+        .navigationTitle(L(.adminRecentOrders))
         .navigationBarTitleDisplayMode(.inline)
+        .clearsFloatingTabBar()
         .task { await viewModel.load() }
         .refreshable { await viewModel.load() }
     }

@@ -26,7 +26,7 @@ enum DesignTokens {
     static let chipCornerRadius: CGFloat = 10
 
     /// Space reserved under scroll/list content so the floating glass tab bar does not cover it.
-    static let floatingTabBarClearance: CGFloat = 84
+    static let floatingTabBarClearance: CGFloat = 108
 
     static func configureTabBarAppearance() {
         let apply = {

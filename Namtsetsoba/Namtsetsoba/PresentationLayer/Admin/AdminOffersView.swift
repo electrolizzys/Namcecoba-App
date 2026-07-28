@@ -9,7 +9,7 @@ struct AdminOffersView: View {
                 if viewModel.isLoading && viewModel.offers.isEmpty {
                     ProgressView().padding(.top, 40)
                 } else if viewModel.offers.isEmpty {
-                    Text("No active offers.")
+                    Text(L(.adminNoOffers))
                         .foregroundStyle(.secondary)
                         .padding(.top, 40)
                 } else {
@@ -28,9 +28,10 @@ struct AdminOffersView: View {
                 }
             }
             .padding(16)
+            .padding(.bottom, DesignTokens.floatingTabBarClearance)
         }
         .background(DesignTokens.selectedChipBackground)
-        .navigationTitle("Active Offers")
+        .navigationTitle(L(.adminActiveOffers))
         .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.load() }
         .refreshable { await viewModel.load() }
@@ -55,7 +56,7 @@ struct AdminOffersView: View {
                         .foregroundStyle(DesignTokens.primaryGreen)
                     Spacer()
                     AdminStatusPill(
-                        text: "\(basket.remainingCount) left",
+                        text: String(format: L(.adminOffersLeft), basket.remainingCount),
                         color: basket.remainingCount > 0 ? AdminPalette.green : AdminPalette.red
                     )
                 }

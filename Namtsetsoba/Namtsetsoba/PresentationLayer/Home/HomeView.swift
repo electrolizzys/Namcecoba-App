@@ -15,14 +15,14 @@ struct HomeView: View {
                 AppListControlsHeader(
                     searchPlaceholder: L(.offersSearchPlaceholder),
                     searchText: $viewModel.searchQuery,
-                    sortLabel: viewModel.selectedSort.rawValue,
+                    sortLabel: viewModel.selectedSort.localizedName,
                     selectedCategory: $viewModel.selectedCategory
                 ) {
                     ForEach(SortOption.allCases) { option in
                         Button {
                             viewModel.selectedSort = option
                         } label: {
-                            Label(option.rawValue, systemImage: option.systemImage)
+                            Label(option.localizedName, systemImage: option.systemImage)
                         }
                     }
                 }

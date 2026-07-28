@@ -1,56 +1,62 @@
 import SwiftUI
 
 /// Entry hub for admin tools (opened from Profile when `currentRole == .admin`).
+/// Destinations that already have their own tab switch to that tab so the tab bar
+/// stays in sync; the rest push onto the profile navigation stack.
 struct AdminPanelView: View {
+    @Environment(\.mainTabSelection) private var mainTabSelection
+
     var body: some View {
         List {
-            Section("Overview") {
-                NavigationLink {
-                    AdminDashboardView()
+            Section(L(.adminOverview)) {
+                Button {
+                    mainTabSelection?.openAdminDashboard()
                 } label: {
-                    Label("Dashboard", systemImage: "chart.bar.fill")
+                    Label(L(.tabDashboard), systemImage: "chart.bar.fill")
                 }
+
                 NavigationLink {
                     AdminAnalyticsView()
                 } label: {
-                    Label("Statistics", systemImage: "chart.xyaxis.line")
+                    Label(L(.adminStatistics), systemImage: "chart.xyaxis.line")
                 }
             }
 
-            Section("Commerce") {
+            Section(L(.adminCommerce)) {
                 NavigationLink {
                     AdminSalesView()
                 } label: {
-                    Label("Sales by Store", systemImage: "banknote")
+                    Label(L(.adminSalesByStore), systemImage: "banknote")
                 }
-                NavigationLink {
-                    AdminOrdersView()
+                Button {
+                    mainTabSelection?.openAdminOrders()
                 } label: {
-                    Label("Recent Orders", systemImage: "bag.fill")
+                    Label(L(.adminRecentOrders), systemImage: "bag.fill")
                 }
                 NavigationLink {
                     AdminOffersView()
                 } label: {
-                    Label("Active Offers", systemImage: "leaf.fill")
+                    Label(L(.adminActiveOffers), systemImage: "leaf.fill")
                 }
             }
 
-            Section("Directory") {
-                NavigationLink {
-                    AdminStoresView()
+            Section(L(.adminDirectory)) {
+                Button {
+                    mainTabSelection?.openAdminStores()
                 } label: {
-                    Label("Stores", systemImage: "storefront.fill")
+                    Label(L(.tabStores), systemImage: "storefront.fill")
                 }
                 NavigationLink {
                     AdminUsersView()
                 } label: {
-                    Label("Users", systemImage: "person.3.fill")
+                    Label(L(.adminUsers), systemImage: "person.3.fill")
                 }
             }
         }
         .scrollContentBackground(.hidden)
         .lightGreenScreenStyle()
-        .navigationTitle("Admin Panel")
+        .navigationTitle(L(.adminPanelTitle))
         .navigationBarTitleDisplayMode(.inline)
+        .clearsFloatingTabBar()
     }
 }

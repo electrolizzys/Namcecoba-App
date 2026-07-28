@@ -13,31 +13,31 @@ struct CustomerAnalyticsView: View {
                 AnalyticsPeriodPicker(selection: $viewModel.period)
 
                 AnalyticsHeroCard(
-                    title: "Money saved",
+                    title: L(.analyticsMoneySaved),
                     value: Utilities.formatMoneyGel(viewModel.analytics.moneySaved),
-                    caption: "Across \(viewModel.analytics.bagsRescued) rescued bag\(viewModel.analytics.bagsRescued == 1 ? "" : "s") · \(viewModel.period.displayName.lowercased())",
+                    caption: String(format: L(.analyticsMoneySavedCaption), viewModel.analytics.bagsRescued, viewModel.period.localizedName),
                     systemImage: "sparkles"
                 )
 
                 AnalyticsStatGrid {
                     AnalyticsStatCard(
-                        title: "Orders placed",
+                        title: L(.analyticsOrdersPlaced),
                         value: "\(viewModel.analytics.ordersPlaced)",
                         systemImage: "bag.fill"
                     )
                     AnalyticsStatCard(
-                        title: "Bags rescued",
+                        title: L(.analyticsBagsRescued),
                         value: "\(viewModel.analytics.bagsRescued)",
                         systemImage: "leaf.fill"
                     )
                     AnalyticsStatCard(
-                        title: "Total spent",
+                        title: L(.analyticsTotalSpent),
                         value: Utilities.formatMoneyGel(viewModel.analytics.totalSpent),
                         systemImage: "creditcard.fill",
                         tint: Color(red: 0.23, green: 0.51, blue: 0.96)
                     )
                     AnalyticsStatCard(
-                        title: "Avg. discount",
+                        title: L(.analyticsAvgDiscount),
                         value: "\(viewModel.analytics.averageSavingsPercent)%",
                         systemImage: "tag.fill",
                         tint: DesignTokens.accentOrange
@@ -47,15 +47,16 @@ struct CustomerAnalyticsView: View {
                 impactCard(viewModel.analytics)
 
                 if let favourite = viewModel.analytics.favouriteStoreName {
-                    AnalyticsSectionCard(title: "Most visited") {
-                        AnalyticsRow(title: "Favourite store", value: favourite)
+                    AnalyticsSectionCard(title: L(.analyticsMostVisited)) {
+                        AnalyticsRow(title: L(.analyticsFavouriteStore), value: favourite)
                     }
                 }
             }
             .padding(DesignTokens.padding)
+            .padding(.bottom, DesignTokens.floatingTabBarClearance)
         }
         .background(DesignTokens.selectedChipBackground)
-        .navigationTitle("Your Impact")
+        .navigationTitle(L(.analyticsYourImpact))
         .navigationBarTitleDisplayMode(.inline)
         .overlay {
             if viewModel.isLoading && viewModel.analytics.ordersPlaced == 0 {
@@ -67,14 +68,14 @@ struct CustomerAnalyticsView: View {
     }
 
     private func impactCard(_ analytics: CustomerAnalytics) -> some View {
-        AnalyticsSectionCard(title: "Your green impact") {
+        AnalyticsSectionCard(title: L(.analyticsGreenImpact)) {
             AnalyticsRow(
-                title: "CO₂ avoided",
+                title: L(.analyticsCO2Avoided),
                 value: String(format: "%.1f kg", analytics.co2SavedKg),
                 tint: DesignTokens.primaryGreen
             )
             AnalyticsRow(
-                title: "Meals kept out of waste",
+                title: L(.analyticsMealsKept),
                 value: "\(analytics.bagsRescued)",
                 tint: DesignTokens.primaryGreen
             )

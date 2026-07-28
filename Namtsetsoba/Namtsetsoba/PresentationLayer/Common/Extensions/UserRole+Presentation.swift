@@ -8,4 +8,13 @@ extension UserRole {
         case .admin: "Admin"
         }
     }
+
+    /// Localized, user-facing role name.
+    var localizedName: String {
+        switch self {
+        case .customer: L(.roleCustomer)
+        case .business: L(.roleVenue)
+        case .admin: L(.roleAdmin)
+        }
+    }
 }

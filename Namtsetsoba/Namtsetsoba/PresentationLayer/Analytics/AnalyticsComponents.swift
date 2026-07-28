@@ -1,5 +1,17 @@
 import SwiftUI
 
+extension AnalyticsPeriod {
+    /// Localized, user-facing period name.
+    var localizedName: String {
+        switch self {
+        case .today: L(.periodToday)
+        case .week: L(.periodWeek)
+        case .month: L(.periodMonth)
+        case .allTime: L(.periodAllTime)
+        }
+    }
+}
+
 /// Segmented period selector used across the analytics screens.
 struct AnalyticsPeriodPicker: View {
     @Binding var selection: AnalyticsPeriod
@@ -7,7 +19,7 @@ struct AnalyticsPeriodPicker: View {
     var body: some View {
         Picker("Period", selection: $selection) {
             ForEach(AnalyticsPeriod.allCases) { period in
-                Text(period.displayName).tag(period)
+                Text(period.localizedName).tag(period)
             }
         }
         .pickerStyle(.segmented)

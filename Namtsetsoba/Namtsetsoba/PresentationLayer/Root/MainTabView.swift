@@ -12,6 +12,12 @@ final class MainTabSelection {
     func openMyProductsTab() {
         selectedTab = 0
     }
+
+    // Admin tabs: Dashboard(0), Stores(1), Add Venue(2), Orders(3), Profile(4)
+    func openAdminDashboard() { selectedTab = 0 }
+    func openAdminStores() { selectedTab = 1 }
+    func openAdminAddVenue() { selectedTab = 2 }
+    func openAdminOrders() { selectedTab = 3 }
 }
 
 private struct MainTabSelectionKey: EnvironmentKey {

@@ -1,5 +1,16 @@
 import SwiftUI
 
+extension SalesPeriod {
+    /// Localized, user-facing period name.
+    var localizedName: String {
+        switch self {
+        case .lastMonth: L(.periodLastMonth)
+        case .lastQuarter: L(.periodLastQuarter)
+        case .lastYear: L(.periodLastYear)
+        }
+    }
+}
+
 /// Shared visual language for admin screens: KPI cards, section cards, rows, pills.
 enum AdminPalette {
     static let green = DesignTokens.primaryGreen
