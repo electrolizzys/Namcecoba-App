@@ -62,6 +62,7 @@ struct StoresListView: View {
                     }
                     .padding(.horizontal, DesignTokens.padding)
                     .padding(.bottom, 24)
+                    .floatingTabBarScrollFiller()
                 }
                 .background(DesignTokens.selectedChipBackground)
             }
@@ -107,7 +108,7 @@ struct StoreListCard: View {
                     HStack {
                         Text(store.name)
                             .font(.headline)
-                        if appState.isFavourite(store.id) {
+                        if appState.currentRole == .customer, appState.isFavourite(store.id) {
                             Image(systemName: "heart.fill")
                                 .font(.caption)
                                 .foregroundStyle(.red)

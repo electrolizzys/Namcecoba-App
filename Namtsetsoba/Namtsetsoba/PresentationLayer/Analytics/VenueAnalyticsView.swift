@@ -78,7 +78,7 @@ struct VenueAnalyticsView: View {
                 impactCard(viewModel.analytics)
             }
             .padding(DesignTokens.padding)
-            .padding(.bottom, DesignTokens.floatingTabBarClearance)
+            .floatingTabBarScrollFiller()
         }
         .background(DesignTokens.selectedChipBackground)
         .navigationTitle(L(.profileVenueAnalytics))

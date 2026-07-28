@@ -45,13 +45,14 @@ struct AdminUsersView: View {
             if let error = viewModel.errorMessage {
                 Text(error).foregroundStyle(.red).font(.caption).adminCardRow()
             }
+
+            FloatingTabBarListFiller.section
         }
         .scrollContentBackground(.hidden)
         .lightGreenScreenStyle()
         .navigationTitle(L(.adminUsers))
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $viewModel.searchText, prompt: L(.adminSearchUsers))
-        .clearsFloatingTabBar()
         .task { await viewModel.load() }
         .refreshable { await viewModel.load() }
     }

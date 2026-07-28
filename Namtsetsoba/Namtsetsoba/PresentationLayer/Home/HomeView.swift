@@ -50,6 +50,7 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, DesignTokens.padding)
                     .padding(.bottom, 24)
+                    .floatingTabBarScrollFiller()
                 }
                 .background(DesignTokens.selectedChipBackground)
             }

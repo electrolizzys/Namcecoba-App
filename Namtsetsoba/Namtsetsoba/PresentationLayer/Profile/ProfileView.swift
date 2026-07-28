@@ -36,45 +36,47 @@ struct ProfileView: View {
                     }
                 }
 
-                Section(L(.profileActivity)) {
-                    if appState.currentRole == .business {
-                        Button {
-                            mainTabSelection?.openMyProductsTab()
-                        } label: {
-                            Label(
-                                "\(appState.businessBaskets.count) active baskets",
-                                systemImage: "storefront.fill"
-                            )
-                        }
+                if appState.currentRole != .admin {
+                    Section(L(.profileActivity)) {
+                        if appState.currentRole == .business {
+                            Button {
+                                mainTabSelection?.openMyProductsTab()
+                            } label: {
+                                Label(
+                                    "\(appState.businessBaskets.count) active baskets",
+                                    systemImage: "storefront.fill"
+                                )
+                            }
 
-                        Button {
-                            mainTabSelection?.openOrders(isBusiness: true)
-                        } label: {
-                            Label("Incoming orders", systemImage: "bag.fill")
-                        }
+                            Button {
+                                mainTabSelection?.openOrders(isBusiness: true)
+                            } label: {
+                                Label("Incoming orders", systemImage: "bag.fill")
+                            }
 
-                        NavigationLink {
-                            VenueAnalyticsView()
-                        } label: {
-                            Label(L(.profileVenueAnalytics), systemImage: "chart.bar.xaxis")
-                        }
-                    } else {
-                        Button {
-                            mainTabSelection?.openOrders(isBusiness: false)
-                        } label: {
-                            Label("\(appState.orders.count) orders placed", systemImage: "bag.fill")
-                        }
+                            NavigationLink {
+                                VenueAnalyticsView()
+                            } label: {
+                                Label(L(.profileVenueAnalytics), systemImage: "chart.bar.xaxis")
+                            }
+                        } else {
+                            Button {
+                                mainTabSelection?.openOrders(isBusiness: false)
+                            } label: {
+                                Label("\(appState.orders.count) orders placed", systemImage: "bag.fill")
+                            }
 
-                        NavigationLink {
-                            FavouriteStoresView()
-                        } label: {
-                            Label("\(appState.frequentStoreIds.count) favorite stores", systemImage: "heart.fill")
-                        }
+                            NavigationLink {
+                                FavouriteStoresView()
+                            } label: {
+                                Label("\(appState.frequentStoreIds.count) favorite stores", systemImage: "heart.fill")
+                            }
 
-                        NavigationLink {
-                            CustomerAnalyticsView()
-                        } label: {
-                            Label(L(.profileMyImpact), systemImage: "chart.bar.xaxis")
+                            NavigationLink {
+                                CustomerAnalyticsView()
+                            } label: {
+                                Label(L(.profileMyImpact), systemImage: "chart.bar.xaxis")
+                            }
                         }
                     }
                 }
@@ -160,6 +162,8 @@ struct ProfileView: View {
                         }
                     }
                 }
+
+                FloatingTabBarListFiller.section
             }
             .scrollContentBackground(.hidden)
             .lightGreenScreenStyle()
@@ -275,33 +279,37 @@ struct FavouriteStoresView: View {
                     description: Text("Open the Stores tab, pick a venue, and use Add to Favourites.")
                 )
             } else {
-                List(favouriteStores) { store in
-                    HStack(spacing: 12) {
-                        StoreThumbnailView(store: store, size: 48)
-                            .id("\(store.id.uuidString)-\(store.logoURL ?? "")")
+                List {
+                    ForEach(favouriteStores) { store in
+                        HStack(spacing: 12) {
+                            StoreThumbnailView(store: store, size: 48)
+                                .id("\(store.id.uuidString)-\(store.logoURL ?? "")")
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(store.name)
-                                .font(.headline)
-                            Text(store.address)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(store.name)
+                                    .font(.headline)
+                                Text(store.address)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                            }
+
+                            Spacer(minLength: 8)
+
+                            Button {
+                                appState.toggleFavourite(store.id)
+                            } label: {
+                                Image(systemName: "heart.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel("Remove from favourites")
                         }
-
-                        Spacer(minLength: 8)
-
-                        Button {
-                            appState.toggleFavourite(store.id)
-                        } label: {
-                            Image(systemName: "heart.fill")
-                                .font(.title3)
-                                .foregroundStyle(.red)
-                        }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel("Remove from favourites")
+                        .padding(.vertical, 4)
                     }
-                    .padding(.vertical, 4)
+
+                    FloatingTabBarListFiller.section
                 }
                 .listStyle(.plain)
             }
@@ -352,6 +360,7 @@ struct AboutNamtsetsobaView: View {
             }
             .padding(DesignTokens.padding)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .floatingTabBarScrollFiller()
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle("About Namtsetsoba")
@@ -385,6 +394,7 @@ struct HelpCenterView: View {
             }
             .padding(DesignTokens.padding)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .floatingTabBarScrollFiller()
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Help Center")

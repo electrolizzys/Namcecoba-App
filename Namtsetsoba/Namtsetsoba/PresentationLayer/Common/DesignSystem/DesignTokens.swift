@@ -25,7 +25,7 @@ enum DesignTokens {
     static let filterControlHeight: CGFloat = 40
     static let chipCornerRadius: CGFloat = 10
 
-    /// Space reserved under scroll/list content so the floating glass tab bar does not cover it.
+    /// Extra scroll length under list/scroll content so the floating glass tab bar does not cover it.
     static let floatingTabBarClearance: CGFloat = 108
 
     static func configureTabBarAppearance() {
@@ -363,9 +363,18 @@ extension View {
             .background(DesignTokens.selectedChipBackground)
     }
 
-    /// Keeps scroll/list content and bottom bars clear of the floating glass tab bar.
-    func clearsFloatingTabBar() -> some View {
-        safeAreaPadding(.bottom, DesignTokens.floatingTabBarClearance)
+    /// Appends blank scrollable height under this content so the last items clear the floating tab bar.
+    /// Prefer this over padding/safe-area insets on the whole screen — only extends content length.
+    func floatingTabBarScrollFiller() -> some View {
+        VStack(spacing: 0) {
+            self
+            FloatingTabBarScrollFiller()
+        }
+    }
+
+    /// Lifts a sticky bottom bar (e.g. Order) above the floating tab bar.
+    func floatingTabBarBottomBarClearance() -> some View {
+        padding(.bottom, DesignTokens.floatingTabBarClearance)
     }
 
     /// Adds the map explore button to the nav bar and its full-screen cover.
@@ -382,6 +391,29 @@ extension View {
         }
         .fullScreenCover(isPresented: isPresented) {
             MapExploreView()
+        }
+    }
+}
+
+/// Transparent trailing space; page background shows through when scrolling past the last item.
+struct FloatingTabBarScrollFiller: View {
+    var body: some View {
+        Color.clear
+            .frame(height: DesignTokens.floatingTabBarClearance)
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
+    }
+}
+
+enum FloatingTabBarListFiller {
+    /// Last section in a `List` — adds scrollable blank height without shrinking the list viewport.
+    @ViewBuilder
+    static var section: some View {
+        Section {
+            FloatingTabBarScrollFiller()
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
         }
     }
 }

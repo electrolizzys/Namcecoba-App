@@ -53,7 +53,7 @@ struct CustomerAnalyticsView: View {
                 }
             }
             .padding(DesignTokens.padding)
-            .padding(.bottom, DesignTokens.floatingTabBarClearance)
+            .floatingTabBarScrollFiller()
         }
         .background(DesignTokens.selectedChipBackground)
         .navigationTitle(L(.analyticsYourImpact))

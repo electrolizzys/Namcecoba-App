@@ -28,8 +28,8 @@ struct AdminPanelView: View {
                 } label: {
                     Label(L(.adminSalesByStore), systemImage: "banknote")
                 }
-                Button {
-                    mainTabSelection?.openAdminOrders()
+                NavigationLink {
+                    AdminOrdersView()
                 } label: {
                     Label(L(.adminRecentOrders), systemImage: "bag.fill")
                 }
@@ -52,11 +52,12 @@ struct AdminPanelView: View {
                     Label(L(.adminUsers), systemImage: "person.3.fill")
                 }
             }
+
+            FloatingTabBarListFiller.section
         }
         .scrollContentBackground(.hidden)
         .lightGreenScreenStyle()
         .navigationTitle(L(.adminPanelTitle))
         .navigationBarTitleDisplayMode(.inline)
-        .clearsFloatingTabBar()
     }
 }

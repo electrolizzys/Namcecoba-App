@@ -43,6 +43,7 @@ struct OrderDetailView: View {
                 }
             }
             .padding(DesignTokens.padding)
+            .floatingTabBarScrollFiller()
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle(L(.orderDetailsTitle))

@@ -25,7 +25,7 @@ struct AdminStoresView: View {
                 }
             }
             .padding(16)
-            .padding(.bottom, DesignTokens.floatingTabBarClearance)
+            .floatingTabBarScrollFiller()
         }
         .background(DesignTokens.selectedChipBackground)
         .navigationTitle(L(.tabStores))

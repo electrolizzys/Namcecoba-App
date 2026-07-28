@@ -15,10 +15,13 @@ struct StoreDetailView: View {
                     infoCard
                     hoursCard
                     locationCard
-                    favouriteCard
+                    if appState.currentRole == .customer {
+                        favouriteCard
+                    }
                     basketsSection
                 }
                 .padding(DesignTokens.padding)
+                FloatingTabBarScrollFiller()
             }
         }
         .background(Color(.systemGroupedBackground))

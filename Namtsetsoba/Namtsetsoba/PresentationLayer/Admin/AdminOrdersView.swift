@@ -59,12 +59,13 @@ struct AdminOrdersView: View {
             if let error = viewModel.errorMessage {
                 Text(error).foregroundStyle(.red).font(.caption).adminCardRow()
             }
+
+            FloatingTabBarListFiller.section
         }
         .scrollContentBackground(.hidden)
         .lightGreenScreenStyle()
         .navigationTitle(L(.adminRecentOrders))
         .navigationBarTitleDisplayMode(.inline)
-        .clearsFloatingTabBar()
         .task { await viewModel.load() }
         .refreshable { await viewModel.load() }
     }

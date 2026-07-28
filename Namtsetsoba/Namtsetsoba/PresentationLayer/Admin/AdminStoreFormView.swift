@@ -59,7 +59,7 @@ struct AdminAddVenueView: View {
                 createButton
             }
             .padding(20)
-            .padding(.bottom, DesignTokens.floatingTabBarClearance)
+            .floatingTabBarScrollFiller()
         }
         .background(DesignTokens.selectedChipBackground)
         .navigationTitle(L(.tabAddVenue))

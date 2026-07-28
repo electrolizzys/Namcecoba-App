@@ -36,7 +36,7 @@ struct AdminDashboardView: View {
                 }
             }
             .padding(16)
-            .padding(.bottom, DesignTokens.floatingTabBarClearance)
+            .floatingTabBarScrollFiller()
         }
         .background(DesignTokens.selectedChipBackground)
         .navigationTitle(L(.tabDashboard))
@@ -54,18 +54,14 @@ struct AdminDashboardView: View {
             }
             .buttonStyle(.plain)
 
-            Button {
-                mainTabSelection?.openAdminOrders()
-            } label: {
+            NavigationLink { AdminOrdersView() } label: {
                 AdminStatCard(icon: "bag.fill", title: L(.adminPickedUpOrders),
                               value: "\(stats.pickedUpOrderCount)",
                               tint: AdminPalette.blue, showsChevron: true)
             }
             .buttonStyle(.plain)
 
-            Button {
-                mainTabSelection?.openAdminOrders()
-            } label: {
+            NavigationLink { AdminOrdersView() } label: {
                 AdminStatCard(icon: "xmark.bin.fill", title: L(.adminCancelledOrders),
                               value: "\(stats.cancelledOrderCount)",
                               tint: AdminPalette.red, showsChevron: true)

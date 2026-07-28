@@ -71,6 +71,7 @@ struct NotificationsView: View {
             .padding(.horizontal, DesignTokens.padding)
             .padding(.top, 12)
             .padding(.bottom, 16)
+            .floatingTabBarScrollFiller()
         }
     }
 

@@ -19,6 +19,7 @@ struct BusinessHomeView: View {
                         .padding(.horizontal, DesignTokens.padding)
                         .padding(.top, DesignTokens.padding)
                         .padding(.bottom, 24)
+                        .floatingTabBarScrollFiller()
                 }
                 .background(DesignTokens.selectedChipBackground)
             }

@@ -110,6 +110,8 @@ struct OrdersView: View {
                     Text("\(L(.ordersPastOrders)) (\(past.count))")
                 }
             }
+
+            FloatingTabBarListFiller.section
         }
         .scrollContentBackground(.hidden)
         .navigationDestination(for: Order.self) { order in
@@ -183,6 +185,8 @@ struct OrdersView: View {
                     }
                 }
             }
+
+            FloatingTabBarListFiller.section
         }
         .scrollContentBackground(.hidden)
         .navigationDestination(for: Order.self) { order in

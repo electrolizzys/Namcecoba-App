@@ -13,11 +13,10 @@ final class MainTabSelection {
         selectedTab = 0
     }
 
-    // Admin tabs: Dashboard(0), Stores(1), Add Venue(2), Orders(3), Profile(4)
+    // Admin tabs: Dashboard(0), Stores(1), Add Venue(2), Profile(3)
     func openAdminDashboard() { selectedTab = 0 }
     func openAdminStores() { selectedTab = 1 }
     func openAdminAddVenue() { selectedTab = 2 }
-    func openAdminOrders() { selectedTab = 3 }
 }
 
 private struct MainTabSelectionKey: EnvironmentKey {
@@ -45,7 +44,6 @@ private enum TabKind: Hashable {
     case adminDashboard
     case adminStores
     case adminAddVenue
-    case adminOrders
 }
 
 private struct AppTab: Identifiable {
@@ -71,7 +69,7 @@ struct MainTabView: View {
         case .business:
             [.businessProducts, .orders, .venueAnalytics, .alerts, .profile]
         case .admin:
-            [.adminDashboard, .adminStores, .adminAddVenue, .adminOrders, .profile]
+            [.adminDashboard, .adminStores, .adminAddVenue, .profile]
         default:
             [.customerHome, .customerStores, .orders, .alerts, .profile]
         }
@@ -109,19 +107,14 @@ struct MainTabView: View {
     }
 
     private var tabScaffold: some View {
-        // Overlay the custom tab bar instead of TabView.safeAreaInset — inset on TabView
-        // often fails to reach nested NavigationStacks, so last rows / pay buttons sit under it.
+        // Overlay the custom tab bar. Screens append trailing blank scroll length
+        // (FloatingTabBarScrollFiller) so last rows clear the bar without shrinking the viewport.
         ZStack(alignment: .bottom) {
             TabView(selection: $mainTabSelection.selectedTab) {
                 ForEach(tabs) { tab in
                     destination(for: tab.kind)
                         .tag(tab.id)
                         .toolbar(.hidden, for: .tabBar)
-                        // Reserve room for the floating bar via safe area (not padding), so each
-                        // screen's own background extends under the bar — no separate flat panel.
-                        .safeAreaInset(edge: .bottom) {
-                            Color.clear.frame(height: DesignTokens.floatingTabBarClearance)
-                        }
                 }
             }
             .tint(DesignTokens.primaryGreen)
@@ -166,8 +159,6 @@ struct MainTabView: View {
             NavigationStack { AdminStoresView() }
         case .adminAddVenue:
             NavigationStack { AdminAddVenueView() }
-        case .adminOrders:
-            NavigationStack { AdminOrdersView() }
         }
     }
 
@@ -178,7 +169,7 @@ struct MainTabView: View {
         case .customerHome: L(.tabOffers)
         case .businessProducts: L(.tabMyProducts)
         case .customerStores, .adminStores: L(.tabStores)
-        case .orders, .adminOrders: L(.tabOrders)
+        case .orders: L(.tabOrders)
         case .alerts: L(.tabAlerts)
         case .profile: L(.tabProfile)
         case .venueAnalytics: L(.tabAnalytics)
@@ -191,7 +182,7 @@ struct MainTabView: View {
         switch kind {
         case .customerHome: "leaf.fill"
         case .businessProducts, .customerStores, .adminStores: "storefront.fill"
-        case .orders, .adminOrders: "bag.fill"
+        case .orders: "bag.fill"
         case .alerts: "bell.fill"
         case .profile: "person.fill"
         case .venueAnalytics: "chart.bar.fill"
@@ -204,7 +195,7 @@ struct MainTabView: View {
         switch kind {
         case .customerHome, .businessProducts, .adminAddVenue: DesignTokens.primaryGreen
         case .customerStores, .adminStores: DesignTokens.accentOrange
-        case .orders, .adminOrders: Self.ordersColor
+        case .orders: Self.ordersColor
         case .alerts: Self.alertsColor
         case .profile: Self.profileColor
         case .venueAnalytics, .adminDashboard: Self.analyticsColor
