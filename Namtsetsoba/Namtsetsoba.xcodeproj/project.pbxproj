@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		095B3122FCA54F1184204378 /* MarkSupportNotificationsReadUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D447CCEF4C54D10BA44407D /* MarkSupportNotificationsReadUseCase.swift */; };
+		6E725E97CA284D4994CAD643 /* SupportChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9840C5CA7AA41BE91A64C98 /* SupportChat.swift */; };
+		3E049E466E6B47FBA7475628 /* SupportChatGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D3E8B49C8D64C65BB6070B4 /* SupportChatGateway.swift */; };
+		D4DA32E0CDD346398F9D1746 /* SupportChatUseCases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C00081A7FB14B8BA5F927A7 /* SupportChatUseCases.swift */; };
+		91C22C5B63D746258FBE2D32 /* ApiSupportChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE35A9635041DD88D35A4A /* ApiSupportChat.swift */; };
+		07CCB0B80BCA447FBF7128BD /* ApiSupportChatGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 536302275BAC473AAC403803 /* ApiSupportChatGateway.swift */; };
+		D5C197C1B94F437FA810D5A1 /* SupportChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4459F363A5A74F23990A5FD8 /* SupportChatView.swift */; };
+		65867C6E569C4620954660EE /* SupportChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F52F80FAEED041AC96B4BE75 /* SupportChatViewModel.swift */; };
 		0312D7D7084894B03E6CB631 /* BasketDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3781B1DD3789B5059A29CD /* BasketDetailView.swift */; };
 		03530610FBB3489386A1288F /* CreateStoreWithVenueUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0524235914954A03842E3 /* CreateStoreWithVenueUseCase.swift */; };
 		03F659B8E6AA47E7AB7401E4 /* AdminPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E83346E05D04E929F87406A /* AdminPanelView.swift */; };
@@ -189,6 +197,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4D447CCEF4C54D10BA44407D /* MarkSupportNotificationsReadUseCase.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarkSupportNotificationsReadUseCase.swift; sourceTree = "<group>"; };
+		A9840C5CA7AA41BE91A64C98 /* SupportChat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SupportChat.swift; sourceTree = "<group>"; };
+		5D3E8B49C8D64C65BB6070B4 /* SupportChatGateway.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SupportChatGateway.swift; sourceTree = "<group>"; };
+		9C00081A7FB14B8BA5F927A7 /* SupportChatUseCases.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SupportChatUseCases.swift; sourceTree = "<group>"; };
+		C5CE35A9635041DD88D35A4A /* ApiSupportChat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ApiSupportChat.swift; sourceTree = "<group>"; };
+		536302275BAC473AAC403803 /* ApiSupportChatGateway.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ApiSupportChatGateway.swift; sourceTree = "<group>"; };
+		4459F363A5A74F23990A5FD8 /* SupportChatView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SupportChatView.swift; sourceTree = "<group>"; };
+		F52F80FAEED041AC96B4BE75 /* SupportChatViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SupportChatViewModel.swift; sourceTree = "<group>"; };
 		01C13C9143CE91514AA6A7DB /* ApiNotification.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ApiNotification.swift; sourceTree = "<group>"; };
 		01F141DCB61A60256F08647E /* ApiFavouriteInsert.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ApiFavouriteInsert.swift; sourceTree = "<group>"; };
 		03EF2B7760A42D434732B050 /* LocalizationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
@@ -436,6 +452,7 @@
 				0AE2670992158434463FE493 /* CustomerAnalytics.swift */,
 				84A488ABA8EC4BABA48C4D99 /* RatingEstimator.swift */,
 				2E1108DFAE63A0B3AD6AC99D /* OrderRating.swift */,
+				A9840C5CA7AA41BE91A64C98 /* SupportChat.swift */,
 			);
 			name = Models;
 			path = Models;
@@ -549,9 +566,19 @@
 				4C79F23CAA0183F705550874 /* StoreGateway.swift */,
 				7AD248E5F53146369D9965E4 /* AdminGateway.swift */,
 				FE4CADB8ABCFF4941008E571 /* RatingGateway.swift */,
+				5D3E8B49C8D64C65BB6070B4 /* SupportChatGateway.swift */,
 			);
 			name = Gateways;
 			path = Gateways;
+			sourceTree = "<group>";
+		};
+		BC99EEB6FAA7487AB30ED1C4 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				9C00081A7FB14B8BA5F927A7 /* SupportChatUseCases.swift */,
+			);
+			name = Support;
+			path = Support;
 			sourceTree = "<group>";
 		};
 		50624B1397235FDFED292A3F /* Ratings */ = {
@@ -628,6 +655,7 @@
 				35D19C491700DC13898BAFE5 /* ISO8601DateCoding.swift */,
 				E683846093A454C3A5F7EADD /* Requests */,
 				E0AA04D582F5A6DDF1A3AC48 /* ApiRating.swift */,
+				C5CE35A9635041DD88D35A4A /* ApiSupportChat.swift */,
 			);
 			name = ApiModels;
 			path = ApiModels;
@@ -757,6 +785,7 @@
 				6C8ED7A92ACE40D3B9E64D03 /* ApiStoreGateway.swift */,
 				1F4E9775C2A944718D740364 /* ApiAdminGateway.swift */,
 				0E3C02527C1C5F16A696185A /* ApiRatingGateway.swift */,
+				536302275BAC473AAC403803 /* ApiSupportChatGateway.swift */,
 			);
 			name = Gateways;
 			path = Gateways;
@@ -902,6 +931,7 @@
 				2002CF504471E4E8E66D2425 /* MarkAllNotificationsAsReadUseCase.swift */,
 				3257F15932CF53B3D0059665 /* MarkNotificationAsReadUseCase.swift */,
 				87E86167BAC1F558A41BBE8E /* SubmitSupportRequestUseCase.swift */,
+				4D447CCEF4C54D10BA44407D /* MarkSupportNotificationsReadUseCase.swift */,
 			);
 			name = Notifications;
 			path = Notifications;
@@ -921,6 +951,7 @@
 				A32C757F8D5C446EADCD583D /* Admin */,
 				F637879D77CF662EE27039D7 /* Analytics */,
 				50624B1397235FDFED292A3F /* Ratings */,
+				BC99EEB6FAA7487AB30ED1C4 /* Support */,
 			);
 			name = UseCases;
 			path = UseCases;
@@ -1018,6 +1049,16 @@
 			path = Requests;
 			sourceTree = "<group>";
 		};
+		C3DDA9D1887846FDB02D2F19 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				4459F363A5A74F23990A5FD8 /* SupportChatView.swift */,
+				F52F80FAEED041AC96B4BE75 /* SupportChatViewModel.swift */,
+			);
+			name = Support;
+			path = Support;
+			sourceTree = "<group>";
+		};
 		EA9A10C9F1F209A46FAF2650 /* PresentationLayer */ = {
 			isa = PBXGroup;
 			children = (
@@ -1037,6 +1078,7 @@
 				6217AEF478AB4BEF80041C58 /* Admin */,
 				98CF7F168E20AD3165657A5A /* Analytics */,
 				337CF05D0FE3D84E94ACABFE /* Ratings */,
+				C3DDA9D1887846FDB02D2F19 /* Support */,
 			);
 			name = PresentationLayer;
 			path = PresentationLayer;
@@ -1340,6 +1382,14 @@
 				60A752A84048F8B46658B36F /* AdminComponents.swift in Sources */,
 				312C58CC8E327C77D65CC611 /* ProfileSupportViews.swift in Sources */,
 				2F4D67BC35A95EB5424BF0B8 /* SubmitSupportRequestUseCase.swift in Sources */,
+				095B3122FCA54F1184204378 /* MarkSupportNotificationsReadUseCase.swift in Sources */,
+				6E725E97CA284D4994CAD643 /* SupportChat.swift in Sources */,
+				3E049E466E6B47FBA7475628 /* SupportChatGateway.swift in Sources */,
+				D4DA32E0CDD346398F9D1746 /* SupportChatUseCases.swift in Sources */,
+				91C22C5B63D746258FBE2D32 /* ApiSupportChat.swift in Sources */,
+				07CCB0B80BCA447FBF7128BD /* ApiSupportChatGateway.swift in Sources */,
+				D5C197C1B94F437FA810D5A1 /* SupportChatView.swift in Sources */,
+				65867C6E569C4620954660EE /* SupportChatViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

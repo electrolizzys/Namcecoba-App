@@ -141,4 +141,8 @@ enum L10n: String {
     case helpVenueOrdersTitle, helpVenueOrdersBody
     case helpSupportTitle, helpSupportSubtitle, helpSupportPlaceholder
     case helpSupportSend, helpSupportSent, helpSupportFailed, helpSupportEmpty
+    case supportChatTitle, supportChatPlaceholder, supportChatEmptyTitle, supportChatEmptyMessage
+    case supportInboxTitle, supportInboxEmptyTitle, supportInboxEmptyMessage
+    case supportRoleCustomer, supportRoleVenue, supportRoleAdmin
+    case supportStartChat, supportStartChatEmpty
 }

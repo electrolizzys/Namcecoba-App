@@ -65,11 +65,6 @@ struct AboutNamtsetsobaView: View {
 
 struct HelpCenterView: View {
     @Environment(AppState.self) private var appState
-    @State private var supportMessage = ""
-    @State private var isSending = false
-    @State private var banner: String?
-    @State private var bannerIsError = false
-    @State private var bannerClearTask: Task<Void, Never>?
 
     var body: some View {
         ScrollView {
@@ -96,7 +91,12 @@ struct HelpCenterView: View {
                     .foregroundStyle(.secondary)
 
                 if appState.currentRole != .admin {
-                    supportCard
+                    NavigationLink {
+                        SupportChatView(currentUserId: appState.userId)
+                    } label: {
+                        supportChatEntryCard
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(DesignTokens.padding)
@@ -105,58 +105,30 @@ struct HelpCenterView: View {
         .background(DesignTokens.selectedChipBackground)
         .navigationTitle(L(.helpTitle))
         .navigationBarTitleDisplayMode(.inline)
-        .onDisappear {
-            bannerClearTask?.cancel()
-            bannerClearTask = nil
-        }
     }
 
-    private var supportCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(L(.helpSupportTitle), systemImage: "lifepreserver.fill")
-                .font(.headline)
+    private var supportChatEntryCard: some View {
+        HStack(spacing: 14) {
+            Image(systemName: "bubble.left.and.bubble.right.fill")
+                .font(.title2)
                 .foregroundStyle(DesignTokens.primaryGreen)
-            Text(L(.helpSupportSubtitle))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .frame(width: 44, height: 44)
+                .background(DesignTokens.primaryGreen.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-            TextField(L(.helpSupportPlaceholder), text: $supportMessage, axis: .vertical)
-                .lineLimit(4...8)
-                .padding(12)
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .onChange(of: supportMessage) { _, newValue in
-                    // Clear leftover banners once the user starts typing again.
-                    guard banner != nil, !newValue.isEmpty else { return }
-                    Task { @MainActor in clearBanner() }
-                }
-
-            if let banner {
-                Text(banner)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(L(.helpSupportTitle))
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Text(L(.helpSupportSubtitle))
                     .font(.caption)
-                    .foregroundStyle(bannerIsError ? .red : DesignTokens.primaryGreen)
-                    .transition(.opacity)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
             }
 
-            Button {
-                Task { await sendSupport() }
-            } label: {
-                ZStack {
-                    if isSending {
-                        ProgressView().tint(.white)
-                    } else {
-                        Text(L(.helpSupportSend))
-                            .fontWeight(.semibold)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .foregroundStyle(.white)
-                .background(DesignTokens.headerGradient)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .disabled(isSending)
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
         }
         .padding(16)
         .background(Color(.systemBackground))
@@ -177,58 +149,6 @@ struct HelpCenterView: View {
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
-    }
-
-    @MainActor
-    private func sendSupport() async {
-        let trimmed = supportMessage.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count >= 3 else {
-            showBanner(L(.helpSupportEmpty), isError: true)
-            return
-        }
-        isSending = true
-        clearBanner()
-        defer { isSending = false }
-        do {
-            try await AppContainer.shared.submitSupportRequest.execute(message: trimmed)
-            supportMessage = ""
-            showBanner(L(.helpSupportSent), isError: false)
-        } catch {
-            let detail = error.localizedDescription
-            let needsSetup =
-                detail.localizedCaseInsensitiveContains("could not find")
-                || detail.localizedCaseInsensitiveContains("does not exist")
-                || detail.localizedCaseInsensitiveContains("404")
-                || detail.localizedCaseInsensitiveContains("PGRST202")
-                || detail.localizedCaseInsensitiveContains("function")
-            let text = needsSetup
-                ? "\(L(.helpSupportFailed)) Run docs/support_setup.sql in Supabase."
-                : "\(L(.helpSupportFailed)) (\(detail))"
-            showBanner(text, isError: true)
-        }
-    }
-
-    @MainActor
-    private func showBanner(_ text: String, isError: Bool) {
-        bannerClearTask?.cancel()
-        withAnimation(.easeInOut(duration: 0.2)) {
-            banner = text
-            bannerIsError = isError
-        }
-        bannerClearTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(4))
-            guard !Task.isCancelled else { return }
-            withAnimation(.easeInOut(duration: 0.25)) {
-                banner = nil
-            }
-        }
-    }
-
-    @MainActor
-    private func clearBanner() {
-        bannerClearTask?.cancel()
-        bannerClearTask = nil
-        banner = nil
     }
 }
 

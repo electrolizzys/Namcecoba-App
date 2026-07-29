@@ -5,6 +5,8 @@ struct NotificationsView: View {
     @Environment(\.mainTabSelection) private var mainTabSelection
     @State private var selectedType: NotificationType?
     @State private var showMap = false
+    @State private var supportConversationId: UUID?
+    @State private var openMySupportChat = false
 
     private var filteredNotifications: [AppNotification] {
         appState.notifications.filter { selectedType == nil || $0.type == selectedType }
@@ -56,6 +58,12 @@ struct NotificationsView: View {
                     }
                 }
             }
+            .navigationDestination(item: $supportConversationId) { conversationId in
+                SupportChatView(conversationId: conversationId, currentUserId: appState.userId)
+            }
+            .navigationDestination(isPresented: $openMySupportChat) {
+                SupportChatView(currentUserId: appState.userId)
+            }
             .refreshable {
                 await appState.loadNotifications()
             }
@@ -69,6 +77,8 @@ struct NotificationsView: View {
             }
             .onTabRootReset {
                 showMap = false
+                supportConversationId = nil
+                openMySupportChat = false
             }
         }
     }
@@ -90,6 +100,18 @@ struct NotificationsView: View {
 
     private func handleTap(_ notification: AppNotification) {
         Task {
+            if notification.type == .support {
+                // Opening the chat marks every alert for that thread as read.
+                if appState.currentRole == .admin, let conversationId = notification.referenceId {
+                    await appState.markSupportConversationNotificationsRead(conversationId: conversationId)
+                    supportConversationId = conversationId
+                } else if appState.currentRole != .admin {
+                    await appState.markSupportConversationNotificationsRead(conversationId: notification.referenceId)
+                    openMySupportChat = true
+                }
+                return
+            }
+
             if !notification.isRead {
                 await appState.markNotificationRead(notification)
             }

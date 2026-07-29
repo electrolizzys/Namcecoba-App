@@ -51,6 +51,11 @@ struct AdminPanelView: View {
                 } label: {
                     Label(L(.adminUsers), systemImage: "person.3.fill")
                 }
+                NavigationLink {
+                    AdminSupportInboxView()
+                } label: {
+                    Label(L(.supportInboxTitle), systemImage: "bubble.left.and.bubble.right.fill")
+                }
             }
 
             FloatingTabBarListFiller.section

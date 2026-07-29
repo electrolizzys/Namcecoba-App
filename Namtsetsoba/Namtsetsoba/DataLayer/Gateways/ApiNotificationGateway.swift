@@ -38,6 +38,27 @@ final class ApiNotificationGateway: NotificationGateway {
             .execute()
     }
 
+    func markSupportNotificationsRead(userId: UUID, conversationId: UUID?) async throws {
+        if let conversationId {
+            try await client
+                .from("notifications")
+                .update(["is_read": true])
+                .eq("user_id", value: userId)
+                .eq("type", value: NotificationType.support.rawValue)
+                .eq("is_read", value: false)
+                .eq("reference_id", value: conversationId)
+                .execute()
+        } else {
+            try await client
+                .from("notifications")
+                .update(["is_read": true])
+                .eq("user_id", value: userId)
+                .eq("type", value: NotificationType.support.rawValue)
+                .eq("is_read", value: false)
+                .execute()
+        }
+    }
+
     func submitSupportRequest(message: String) async throws {
         struct Params: Encodable {
             let p_message: String

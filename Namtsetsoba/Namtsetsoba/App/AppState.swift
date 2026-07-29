@@ -21,6 +21,7 @@ final class AppState {
     @ObservationIgnored private let fetchNotificationsUseCase: FetchNotificationsUseCase
     @ObservationIgnored private let markNotificationAsReadUseCase: MarkNotificationAsReadUseCase
     @ObservationIgnored private let markAllNotificationsAsReadUseCase: MarkAllNotificationsAsReadUseCase
+    @ObservationIgnored private let markSupportNotificationsReadUseCase: MarkSupportNotificationsReadUseCase
     @ObservationIgnored private let fetchFavouriteStoreIdsUseCase: FetchFavouriteStoreIdsUseCase
     @ObservationIgnored private let addFavouriteStoreUseCase: AddFavouriteStoreUseCase
     @ObservationIgnored private let removeFavouriteStoreUseCase: RemoveFavouriteStoreUseCase
@@ -68,6 +69,7 @@ final class AppState {
         fetchNotificationsUseCase = container.fetchNotifications
         markNotificationAsReadUseCase = container.markNotificationAsRead
         markAllNotificationsAsReadUseCase = container.markAllNotificationsAsRead
+        markSupportNotificationsReadUseCase = container.markSupportNotificationsRead
         fetchFavouriteStoreIdsUseCase = container.fetchFavouriteStoreIds
         addFavouriteStoreUseCase = container.addFavouriteStore
         removeFavouriteStoreUseCase = container.removeFavouriteStore
@@ -184,6 +186,23 @@ final class AppState {
         guard let userId else { return }
         try? await markAllNotificationsAsReadUseCase.execute(userId: userId)
         for i in notifications.indices {
+            notifications[i].isRead = true
+        }
+    }
+
+    /// Marks every unread support alert for a conversation (or all support alerts if nil).
+    @MainActor
+    func markSupportConversationNotificationsRead(conversationId: UUID?) async {
+        guard let userId else { return }
+        try? await markSupportNotificationsReadUseCase.execute(
+            userId: userId,
+            conversationId: conversationId
+        )
+        for i in notifications.indices {
+            guard notifications[i].type == .support, !notifications[i].isRead else { continue }
+            if let conversationId {
+                guard notifications[i].referenceId == conversationId else { continue }
+            }
             notifications[i].isRead = true
         }
     }

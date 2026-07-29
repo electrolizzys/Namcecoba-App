@@ -21,6 +21,7 @@ final class AppContainer {
     let deviceTokenGateway: DeviceTokenGateway
     let adminGateway: AdminGateway
     let ratingGateway: RatingGateway
+    let supportChatGateway: SupportChatGateway
 
     init(
         authGateway: AuthGateway = ApiAuthGateway(),
@@ -31,7 +32,8 @@ final class AppContainer {
         favouriteGateway: FavouriteGateway = ApiFavouriteGateway(),
         deviceTokenGateway: DeviceTokenGateway = ApiDeviceTokenGateway(),
         adminGateway: AdminGateway? = nil,
-        ratingGateway: RatingGateway = ApiRatingGateway()
+        ratingGateway: RatingGateway = ApiRatingGateway(),
+        supportChatGateway: SupportChatGateway = ApiSupportChatGateway()
     ) {
         self.authGateway = authGateway
         self.profileGateway = profileGateway
@@ -43,6 +45,7 @@ final class AppContainer {
         self.deviceTokenGateway = deviceTokenGateway
         self.adminGateway = adminGateway ?? ApiAdminGateway(basketGateway: basketGateway)
         self.ratingGateway = ratingGateway
+        self.supportChatGateway = supportChatGateway
     }
 
     // MARK: - Auth use cases
@@ -87,7 +90,31 @@ final class AppContainer {
     var fetchNotifications: FetchNotificationsUseCase { FetchNotificationsUseCaseImpl(gateway: notificationGateway) }
     var markNotificationAsRead: MarkNotificationAsReadUseCase { MarkNotificationAsReadUseCaseImpl(gateway: notificationGateway) }
     var markAllNotificationsAsRead: MarkAllNotificationsAsReadUseCase { MarkAllNotificationsAsReadUseCaseImpl(gateway: notificationGateway) }
+    var markSupportNotificationsRead: MarkSupportNotificationsReadUseCase {
+        MarkSupportNotificationsReadUseCaseImpl(gateway: notificationGateway)
+    }
     var submitSupportRequest: SubmitSupportRequestUseCase { SubmitSupportRequestUseCaseImpl(gateway: notificationGateway) }
+
+    // MARK: - Support chat use cases
+
+    var fetchMySupportConversation: FetchMySupportConversationUseCase {
+        FetchMySupportConversationUseCaseImpl(gateway: supportChatGateway)
+    }
+    var fetchSupportConversations: FetchSupportConversationsUseCase {
+        FetchSupportConversationsUseCaseImpl(gateway: supportChatGateway)
+    }
+    var fetchSupportConversation: FetchSupportConversationUseCase {
+        FetchSupportConversationUseCaseImpl(gateway: supportChatGateway)
+    }
+    var fetchSupportMessages: FetchSupportMessagesUseCase {
+        FetchSupportMessagesUseCaseImpl(gateway: supportChatGateway)
+    }
+    var sendSupportChatMessage: SendSupportChatMessageUseCase {
+        SendSupportChatMessageUseCaseImpl(gateway: supportChatGateway)
+    }
+    var openSupportConversation: OpenSupportConversationUseCase {
+        OpenSupportConversationUseCaseImpl(gateway: supportChatGateway)
+    }
 
     // MARK: - Favourite use cases
 
