@@ -1,8 +1,15 @@
 import SwiftUI
 
 struct AdminDashboardView: View {
+    private enum Route: Hashable {
+        case sales
+        case orders
+        case offers
+    }
+
     @Environment(\.mainTabSelection) private var mainTabSelection
     @State private var viewModel = AdminDashboardViewModel()
+    @State private var navigationPath = NavigationPath()
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -12,56 +19,69 @@ struct AdminDashboardView: View {
     var body: some View {
         @Bindable var viewModel = viewModel
 
-        ScrollView {
-            VStack(spacing: 16) {
-                Picker("Period", selection: $viewModel.period) {
-                    ForEach(SalesPeriod.allCases) { period in
-                        Text(period.localizedName).tag(period)
+        NavigationStack(path: $navigationPath) {
+            ScrollView {
+                VStack(spacing: 16) {
+                    Picker("Period", selection: $viewModel.period) {
+                        ForEach(SalesPeriod.allCases) { period in
+                            Text(period.localizedName).tag(period)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: viewModel.period) { _, _ in
+                        Task { await viewModel.load() }
+                    }
+
+                    if viewModel.isLoading && viewModel.stats == nil {
+                        ProgressView().padding(.top, 60)
+                    } else if let stats = viewModel.stats {
+                        statGrid(stats)
+                        moneyCard(stats)
+                    }
+
+                    if let error = viewModel.errorMessage {
+                        Text(error).foregroundStyle(.red).font(.caption)
                     }
                 }
-                .pickerStyle(.segmented)
-                .onChange(of: viewModel.period) { _, _ in
-                    Task { await viewModel.load() }
-                }
-
-                if viewModel.isLoading && viewModel.stats == nil {
-                    ProgressView().padding(.top, 60)
-                } else if let stats = viewModel.stats {
-                    statGrid(stats)
-                    moneyCard(stats)
-                }
-
-                if let error = viewModel.errorMessage {
-                    Text(error).foregroundStyle(.red).font(.caption)
+                .padding(16)
+                .floatingTabBarScrollFiller()
+            }
+            .background(DesignTokens.selectedChipBackground)
+            .navigationTitle(L(.tabDashboard))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .tabBar)
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .sales: AdminSalesView()
+                case .orders: AdminOrdersView()
+                case .offers: AdminOffersView()
                 }
             }
-            .padding(16)
-            .floatingTabBarScrollFiller()
+            .task { await viewModel.load() }
+            .refreshable { await viewModel.load() }
         }
-        .background(DesignTokens.selectedChipBackground)
-        .navigationTitle(L(.tabDashboard))
-        .navigationBarTitleDisplayMode(.inline)
-        .task { await viewModel.load() }
-        .refreshable { await viewModel.load() }
+        .onTabRootReset {
+            navigationPath = NavigationPath()
+        }
     }
 
     private func statGrid(_ stats: AdminDashboardStats) -> some View {
         LazyVGrid(columns: columns, spacing: 12) {
-            NavigationLink { AdminSalesView() } label: {
+            NavigationLink(value: Route.sales) {
                 AdminStatCard(icon: "banknote.fill", title: L(.adminRevenue),
                               value: Utilities.formatMoneyGel(stats.pickedUpRevenue),
                               tint: AdminPalette.green, showsChevron: true)
             }
             .buttonStyle(.plain)
 
-            NavigationLink { AdminOrdersView() } label: {
+            NavigationLink(value: Route.orders) {
                 AdminStatCard(icon: "bag.fill", title: L(.adminPickedUpOrders),
                               value: "\(stats.pickedUpOrderCount)",
                               tint: AdminPalette.blue, showsChevron: true)
             }
             .buttonStyle(.plain)
 
-            NavigationLink { AdminOrdersView() } label: {
+            NavigationLink(value: Route.orders) {
                 AdminStatCard(icon: "xmark.bin.fill", title: L(.adminCancelledOrders),
                               value: "\(stats.cancelledOrderCount)",
                               tint: AdminPalette.red, showsChevron: true)
@@ -77,7 +97,7 @@ struct AdminDashboardView: View {
             }
             .buttonStyle(.plain)
 
-            NavigationLink { AdminOffersView() } label: {
+            NavigationLink(value: Route.offers) {
                 AdminStatCard(icon: "leaf.fill", title: L(.adminActiveOffers),
                               value: "\(stats.activeOfferCount)",
                               tint: AdminPalette.green, showsChevron: true)

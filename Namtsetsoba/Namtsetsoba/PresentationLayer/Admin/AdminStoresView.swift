@@ -4,58 +4,67 @@ struct AdminStoresView: View {
     @Environment(\.mainTabSelection) private var mainTabSelection
     @State private var viewModel = AdminStoresViewModel()
     @State private var editingStore: Store?
+    @State private var navigationPath = NavigationPath()
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                if viewModel.isLoading && viewModel.stores.isEmpty {
-                    ProgressView().padding(.top, 40)
-                } else if viewModel.stores.isEmpty {
-                    Text(L(.adminNoStores))
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 40)
-                } else {
-                    ForEach(viewModel.stores) { store in
-                        storeCard(store)
+        NavigationStack(path: $navigationPath) {
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    if viewModel.isLoading && viewModel.stores.isEmpty {
+                        ProgressView().padding(.top, 40)
+                    } else if viewModel.stores.isEmpty {
+                        Text(L(.adminNoStores))
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 40)
+                    } else {
+                        ForEach(viewModel.stores) { store in
+                            storeCard(store)
+                        }
+                    }
+
+                    if let error = viewModel.errorMessage {
+                        Text(error).foregroundStyle(.red).font(.caption)
                     }
                 }
-
-                if let error = viewModel.errorMessage {
-                    Text(error).foregroundStyle(.red).font(.caption)
+                .padding(16)
+                .floatingTabBarScrollFiller()
+            }
+            .background(DesignTokens.selectedChipBackground)
+            .navigationTitle(L(.tabStores))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .tabBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        mainTabSelection?.openAdminAddVenue()
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
-            .padding(16)
-            .floatingTabBarScrollFiller()
-        }
-        .background(DesignTokens.selectedChipBackground)
-        .navigationTitle(L(.tabStores))
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    mainTabSelection?.openAdminAddVenue()
-                } label: {
-                    Image(systemName: "plus")
+            .navigationDestination(for: Store.self) { store in
+                StoreDetailView(store: store)
+            }
+            .sheet(item: $editingStore) { store in
+                NavigationStack {
+                    AdminStoreFormView(store: store) {
+                        Task { await viewModel.load() }
+                    }
                 }
             }
+            .task { await viewModel.load() }
+            .onAppear { Task { await viewModel.load() } }
+            .refreshable { await viewModel.load() }
         }
-        .sheet(item: $editingStore) { store in
-            NavigationStack {
-                AdminStoreFormView(store: store) {
-                    Task { await viewModel.load() }
-                }
-            }
+        .onTabRootReset {
+            navigationPath = NavigationPath()
+            editingStore = nil
         }
-        .task { await viewModel.load() }
-        .onAppear { Task { await viewModel.load() } }
-        .refreshable { await viewModel.load() }
     }
 
     private func storeCard(_ store: Store) -> some View {
         ZStack(alignment: .topTrailing) {
-            NavigationLink {
-                StoreDetailView(store: store)
-            } label: {
+            NavigationLink(value: store) {
                 AdminRowCard { storeRow(store) }
             }
             .buttonStyle(.plain)

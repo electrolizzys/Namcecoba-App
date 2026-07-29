@@ -45,6 +45,10 @@ struct BusinessHomeView: View {
             .onChange(of: appState.businessStore.logoURL) { _, _ in
                 Task { await reloadBusinessBaskets() }
             }
+            .onTabRootReset {
+                showAddBasket = false
+                editingBasket = nil
+            }
         }
     }
 

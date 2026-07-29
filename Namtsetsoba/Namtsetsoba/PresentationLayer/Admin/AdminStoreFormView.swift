@@ -52,22 +52,25 @@ struct AdminAddVenueView: View {
     @State private var showSuccess = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 18) {
-                StoreFormContent(viewModel: viewModel)
-                    .id(formToken)
-                createButton
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 18) {
+                    StoreFormContent(viewModel: viewModel)
+                        .id(formToken)
+                    createButton
+                }
+                .padding(20)
+                .floatingTabBarScrollFiller()
             }
-            .padding(20)
-            .floatingTabBarScrollFiller()
+            .background(DesignTokens.selectedChipBackground)
+            .navigationTitle(L(.tabAddVenue))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .tabBar)
+            .overlay(alignment: .top) {
+                if showSuccess { successToast }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSuccess)
         }
-        .background(DesignTokens.selectedChipBackground)
-        .navigationTitle(L(.tabAddVenue))
-        .navigationBarTitleDisplayMode(.inline)
-        .overlay(alignment: .top) {
-            if showSuccess { successToast }
-        }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showSuccess)
     }
 
     private var createButton: some View {

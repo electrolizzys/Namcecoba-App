@@ -81,6 +81,10 @@ struct StoresListView: View {
             .navigationDestination(item: $selectedStore) { store in
                 StoreDetailView(store: store)
             }
+            .onTabRootReset {
+                selectedStore = nil
+                showMap = false
+            }
         }
     }
 

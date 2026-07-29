@@ -207,6 +207,8 @@ struct AppFilterChip: View {
                 }
                 Text(title)
                     .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
             }
             .padding(.horizontal, 16)
             .frame(height: DesignTokens.filterControlHeight)
@@ -217,6 +219,7 @@ struct AppFilterChip: View {
             .contentShape(RoundedRectangle(cornerRadius: DesignTokens.chipCornerRadius))
         }
         .buttonStyle(.plain)
+        .fixedSize(horizontal: true, vertical: false)
     }
 
     @ViewBuilder
@@ -245,7 +248,7 @@ struct AppCategoryFilterCarousel: View {
     @Binding var selectedCategory: ProductCategory?
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
+        HorizontalOnlyScrollView {
             HStack(spacing: 10) {
                 AppFilterChip(
                     title: "All Types",
@@ -270,8 +273,74 @@ struct AppCategoryFilterCarousel: View {
                 }
             }
             .padding(.horizontal, DesignTokens.padding)
+            .fixedSize(horizontal: true, vertical: true)
         }
         .frame(height: DesignTokens.filterControlHeight)
+    }
+}
+
+/// UIKit-backed horizontal scroller — SwiftUI `ScrollView(.horizontal)` still
+/// rubber-bands vertically; this locks movement to the X axis only.
+private struct HorizontalOnlyScrollView<Content: View>: UIViewRepresentable {
+    private let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIView(context: Context) -> UIScrollView {
+        let scrollView = UIScrollView()
+        scrollView.delegate = context.coordinator
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.alwaysBounceHorizontal = true
+        scrollView.alwaysBounceVertical = false
+        scrollView.bounces = true
+        scrollView.isDirectionalLockEnabled = true
+        scrollView.clipsToBounds = true
+        scrollView.backgroundColor = .clear
+        scrollView.contentInsetAdjustmentBehavior = .never
+
+        let host = UIHostingController(rootView: content)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        host.view.backgroundColor = .clear
+        if #available(iOS 16.4, *) {
+            host.safeAreaRegions = []
+        }
+        scrollView.addSubview(host.view)
+        context.coordinator.host = host
+
+        NSLayoutConstraint.activate([
+            host.view.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            host.view.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            host.view.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            // Keep content height equal to the viewport so vertical scrolling is impossible.
+            host.view.heightAnchor.constraint(equalTo: scrollView.frameLayoutGuide.heightAnchor)
+        ])
+
+        return scrollView
+    }
+
+    func updateUIView(_ scrollView: UIScrollView, context: Context) {
+        context.coordinator.host?.rootView = content
+        scrollView.alwaysBounceVertical = false
+        scrollView.isDirectionalLockEnabled = true
+    }
+
+    final class Coordinator: NSObject, UIScrollViewDelegate {
+        var host: UIHostingController<Content>?
+
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            // Hard lock: never allow a vertical offset, even mid-gesture.
+            if scrollView.contentOffset.y != 0 {
+                scrollView.contentOffset.y = 0
+            }
+        }
     }
 }
 

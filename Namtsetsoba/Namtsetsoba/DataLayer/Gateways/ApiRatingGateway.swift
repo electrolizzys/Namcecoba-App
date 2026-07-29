@@ -34,4 +34,14 @@ final class ApiRatingGateway: RatingGateway {
             .value
         return Set(rows.map(\.orderId))
     }
+
+    func fetchRatings(storeId: UUID) async throws -> [OrderRating] {
+        let rows: [ApiRating] = try await client
+            .from("ratings")
+            .select()
+            .eq("store_id", value: storeId)
+            .execute()
+            .value
+        return rows.map { $0.toDomain() }
+    }
 }

@@ -191,7 +191,6 @@ struct CheckoutView: View {
 
             do {
                 let pickupCode = try await viewModel.placeOrder(userId: userId, basket: basket)
-                appState.frequentStoreIds.insert(basket.store.id)
                 await appState.loadOrders()
                 await appState.loadNotifications()
                 appState.triggerBasketRefresh()

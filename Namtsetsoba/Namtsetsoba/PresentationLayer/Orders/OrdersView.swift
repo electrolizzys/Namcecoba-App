@@ -48,6 +48,11 @@ struct OrdersView: View {
         .onChange(of: appState.pendingOrderNavigationId) { _, _ in
             Task { await openPendingOrderIfNeeded() }
         }
+        .onTabRootReset {
+            navigationPath = []
+            showMap = false
+            Task { await openPendingOrderIfNeeded() }
+        }
         .onChange(of: appState.orders) { _, _ in
             offerRatingIfNeeded()
         }

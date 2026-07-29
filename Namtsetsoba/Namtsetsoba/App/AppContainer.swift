@@ -103,6 +103,7 @@ final class AppContainer {
 
     var submitRating: SubmitRatingUseCase { SubmitRatingUseCaseImpl(gateway: ratingGateway) }
     var fetchRatedOrderIds: FetchRatedOrderIdsUseCase { FetchRatedOrderIdsUseCaseImpl(gateway: ratingGateway) }
+    var fetchStoreRatings: FetchStoreRatingsUseCase { FetchStoreRatingsUseCaseImpl(gateway: ratingGateway) }
 
     // MARK: - Analytics use cases
 

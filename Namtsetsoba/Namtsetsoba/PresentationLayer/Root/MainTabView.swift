@@ -3,30 +3,91 @@ import SwiftUI
 @Observable
 final class MainTabSelection {
     var selectedTab: Int = 0
+    /// Incremented for a tab whenever it should pop back to its root screen.
+    /// Views observe this via `tabRootResetToken` — do not remount with `.id()` (breaks UIKit nav bars).
+    private(set) var rootResetTokens: [Int: Int] = [:]
+
+    func rootID(for tab: Int) -> Int {
+        rootResetTokens[tab, default: 0]
+    }
+
+    /// Selects a tab and signals that tab to pop to its root page.
+    func select(_ tab: Int) {
+        selectedTab = tab
+        // Bump outside of animation contexts when possible — callers should prefer
+        // animating only `selectedTab` if they wrap this in `withAnimation`.
+        rootResetTokens[tab, default: 0] += 1
+    }
+
+    /// Signal pop-to-root without changing the selected tab (re-tap current tab).
+    func popToRoot(_ tab: Int) {
+        rootResetTokens[tab, default: 0] += 1
+    }
 
     /// Orders live at a different index per role (customers: 3rd tab, venues: 2nd tab).
     func openOrders(isBusiness: Bool) {
-        selectedTab = isBusiness ? 1 : 2
+        select(isBusiness ? 1 : 2)
     }
 
     func openMyProductsTab() {
-        selectedTab = 0
+        select(0)
     }
 
     // Admin tabs: Dashboard(0), Stores(1), Add Venue(2), Profile(3)
-    func openAdminDashboard() { selectedTab = 0 }
-    func openAdminStores() { selectedTab = 1 }
-    func openAdminAddVenue() { selectedTab = 2 }
+    func openAdminDashboard() { select(0) }
+    func openAdminStores() { select(1) }
+    func openAdminAddVenue() { select(2) }
 }
 
 private struct MainTabSelectionKey: EnvironmentKey {
     static let defaultValue: MainTabSelection? = nil
 }
 
+private struct TabRootResetTokenKey: EnvironmentKey {
+    static let defaultValue: Int = 0
+}
+
 extension EnvironmentValues {
     var mainTabSelection: MainTabSelection? {
         get { self[MainTabSelectionKey.self] }
         set { self[MainTabSelectionKey.self] = newValue }
+    }
+
+    /// Bumps when the owning tab is selected; root screens clear their navigation stack.
+    var tabRootResetToken: Int {
+        get { self[TabRootResetTokenKey.self] }
+        set { self[TabRootResetTokenKey.self] = newValue }
+    }
+}
+
+/// Runs `action` whenever the current tab asks to return to its root (tab bar tap).
+private struct TabRootResetModifier: ViewModifier {
+    @Environment(\.tabRootResetToken) private var token
+    let action: () -> Void
+    @State private var lastToken: Int?
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: token) { _, newValue in
+                if lastToken == nil {
+                    lastToken = newValue
+                    return
+                }
+                guard lastToken != newValue else { return }
+                lastToken = newValue
+                action()
+            }
+            .onAppear {
+                if lastToken == nil {
+                    lastToken = token
+                }
+            }
+    }
+}
+
+extension View {
+    func onTabRootReset(_ action: @escaping () -> Void) -> some View {
+        modifier(TabRootResetModifier(action: action))
     }
 }
 
@@ -113,13 +174,14 @@ struct MainTabView: View {
             TabView(selection: $mainTabSelection.selectedTab) {
                 ForEach(tabs) { tab in
                     destination(for: tab.kind)
+                        .environment(\.tabRootResetToken, mainTabSelection.rootID(for: tab.id))
                         .tag(tab.id)
                         .toolbar(.hidden, for: .tabBar)
                 }
             }
             .tint(DesignTokens.primaryGreen)
 
-            GlassTabBar(tabs: tabs, selectedTab: $mainTabSelection.selectedTab)
+            GlassTabBar(tabs: tabs, selection: mainTabSelection)
                 .padding(.horizontal, 16)
                 .padding(.top, 4)
                 .padding(.bottom, 10)
@@ -130,7 +192,7 @@ struct MainTabView: View {
         )
         .onChange(of: appState.currentRole) { _, _ in
             // Tab meaning changes per role, so land on the first tab to avoid confusion.
-            mainTabSelection.selectedTab = 0
+            mainTabSelection.select(0)
         }
     }
 
@@ -152,13 +214,13 @@ struct MainTabView: View {
         case .profile:
             ProfileView()
         case .venueAnalytics:
-            NavigationStack { VenueAnalyticsView() }
+            VenueAnalyticsView()
         case .adminDashboard:
-            NavigationStack { AdminDashboardView() }
+            AdminDashboardView()
         case .adminStores:
-            NavigationStack { AdminStoresView() }
+            AdminStoresView()
         case .adminAddVenue:
-            NavigationStack { AdminAddVenueView() }
+            AdminAddVenueView()
         }
     }
 
@@ -208,7 +270,7 @@ struct MainTabView: View {
 /// A floating, translucent "liquid glass" tab bar with an animated selection pill.
 private struct GlassTabBar: View {
     let tabs: [AppTab]
-    @Binding var selectedTab: Int
+    var selection: MainTabSelection
 
     @Namespace private var pillNamespace
 
@@ -253,13 +315,17 @@ private struct GlassTabBar: View {
     }
 
     private func tabButton(for item: AppTab) -> some View {
-        let isSelected = selectedTab == item.id
+        let isSelected = selection.selectedTab == item.id
         let iconColor = isSelected ? item.color : item.color.opacity(0.55)
         let labelColor = isSelected ? item.color : Color.secondary
 
         return Button {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.74)) {
-                selectedTab = item.id
+            // Animate the pill only; pop-to-root must not animate UIKit nav transitions.
+            selection.popToRoot(item.id)
+            if selection.selectedTab != item.id {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.74)) {
+                    selection.selectedTab = item.id
+                }
             }
         } label: {
             VStack(spacing: 4) {

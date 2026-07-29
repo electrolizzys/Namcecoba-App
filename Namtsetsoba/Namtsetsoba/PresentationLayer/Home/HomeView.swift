@@ -81,6 +81,10 @@ struct HomeView: View {
             .navigationDestination(item: $selectedBasket) { basket in
                 BasketDetailView(basket: basket)
             }
+            .onTabRootReset {
+                selectedBasket = nil
+                showMap = false
+            }
         }
     }
 

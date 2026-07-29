@@ -79,7 +79,11 @@ final class HomeViewModel {
     @MainActor
     func loadBaskets() async {
         isLoading = true
-        allBaskets = (try? await fetchAvailableBasketsUseCase.execute()) ?? []
+        do {
+            allBaskets = try await fetchAvailableBasketsUseCase.execute()
+        } catch {
+            // Keep previous data on failure so the UI doesn't flash "no offers".
+        }
         isLoading = false
     }
 }

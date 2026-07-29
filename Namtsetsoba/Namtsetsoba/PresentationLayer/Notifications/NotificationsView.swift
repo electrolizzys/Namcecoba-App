@@ -13,7 +13,11 @@ struct NotificationsView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                NotificationFilterBar(selectedType: $selectedType)
+                NotificationFilterBar(
+                    selectedType: $selectedType,
+                    // Venues only get order alerts — "Offers" (favourite) is customer-only.
+                    showsFavouriteFilter: appState.currentRole != .business
+                )
                     .padding(.horizontal, DesignTokens.padding)
                     .padding(.top, 2)
                     .padding(.bottom, 12)
@@ -56,6 +60,14 @@ struct NotificationsView: View {
             }
             .task {
                 await appState.loadNotifications()
+            }
+            .onAppear {
+                if appState.currentRole == .business, selectedType == .favourite {
+                    selectedType = nil
+                }
+            }
+            .onTabRootReset {
+                showMap = false
             }
         }
     }
@@ -110,6 +122,7 @@ struct NotificationsView: View {
 /// Full-width segmented filter shown inside the green header panel.
 struct NotificationFilterBar: View {
     @Binding var selectedType: NotificationType?
+    var showsFavouriteFilter: Bool = true
 
     private struct Segment: Identifiable {
         let id: String
@@ -119,11 +132,21 @@ struct NotificationFilterBar: View {
     }
 
     private var segments: [Segment] {
-        [
+        var items = [
             Segment(id: "all", type: nil, title: "All", icon: "square.grid.2x2"),
             Segment(id: "order", type: .order, title: NotificationType.order.filterTitle, icon: NotificationType.order.filterIcon),
-            Segment(id: "favourite", type: .favourite, title: NotificationType.favourite.filterTitle, icon: NotificationType.favourite.filterIcon),
         ]
+        if showsFavouriteFilter {
+            items.append(
+                Segment(
+                    id: "favourite",
+                    type: .favourite,
+                    title: NotificationType.favourite.filterTitle,
+                    icon: NotificationType.favourite.filterIcon
+                )
+            )
+        }
+        return items
     }
 
     var body: some View {

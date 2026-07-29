@@ -94,7 +94,9 @@ final class StoresListViewModel {
     @MainActor
     func loadStores() async {
         isLoading = allStores.isEmpty
-        allStores = (try? await fetchStoresUseCase.execute()) ?? []
+        if let fetched = try? await fetchStoresUseCase.execute() {
+            allStores = fetched
+        }
         isLoading = false
     }
 }

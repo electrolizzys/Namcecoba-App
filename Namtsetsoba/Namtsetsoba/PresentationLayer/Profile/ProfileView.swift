@@ -3,6 +3,15 @@ import SwiftUI
 import UIKit
 
 struct ProfileView: View {
+    private enum Route: Hashable {
+        case favourites
+        case impact
+        case adminPanel
+        case help
+        case about
+        case changePassword
+    }
+
     @Environment(AppState.self) private var appState
     @Environment(AuthViewModel.self) private var authViewModel
     @Environment(\.mainTabSelection) private var mainTabSelection
@@ -13,9 +22,10 @@ struct ProfileView: View {
     @State private var logoUploading = false
     @State private var logoMessage: String?
     @State private var logoMessageIsError = false
+    @State private var navigationPath = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             List {
                 Section {
                     HStack(spacing: 12) {
@@ -53,12 +63,6 @@ struct ProfileView: View {
                             } label: {
                                 Label("Incoming orders", systemImage: "bag.fill")
                             }
-
-                            NavigationLink {
-                                VenueAnalyticsView()
-                            } label: {
-                                Label(L(.profileVenueAnalytics), systemImage: "chart.bar.xaxis")
-                            }
                         } else {
                             Button {
                                 mainTabSelection?.openOrders(isBusiness: false)
@@ -66,15 +70,11 @@ struct ProfileView: View {
                                 Label("\(appState.orders.count) orders placed", systemImage: "bag.fill")
                             }
 
-                            NavigationLink {
-                                FavouriteStoresView()
-                            } label: {
+                            NavigationLink(value: Route.favourites) {
                                 Label("\(appState.frequentStoreIds.count) favorite stores", systemImage: "heart.fill")
                             }
 
-                            NavigationLink {
-                                CustomerAnalyticsView()
-                            } label: {
+                            NavigationLink(value: Route.impact) {
                                 Label(L(.profileMyImpact), systemImage: "chart.bar.xaxis")
                             }
                         }
@@ -126,28 +126,20 @@ struct ProfileView: View {
 
                 Section("Support") {
                     if appState.currentRole == .admin {
-                        NavigationLink {
-                            AdminPanelView()
-                        } label: {
+                        NavigationLink(value: Route.adminPanel) {
                             Label(L(.profileAdminPanel), systemImage: "shield.lefthalf.filled")
                         }
                     }
-                    NavigationLink {
-                        HelpCenterView()
-                    } label: {
+                    NavigationLink(value: Route.help) {
                         Label("Help Center", systemImage: "questionmark.circle")
                     }
-                    NavigationLink {
-                        AboutNamtsetsobaView()
-                    } label: {
+                    NavigationLink(value: Route.about) {
                         Label("About Namtsetsoba", systemImage: "info.circle")
                     }
                 }
 
                 Section("Account Security") {
-                    NavigationLink {
-                        ChangePasswordView()
-                    } label: {
+                    NavigationLink(value: Route.changePassword) {
                         Label("Change Password", systemImage: "lock.rotation")
                     }
                 }
@@ -168,6 +160,16 @@ struct ProfileView: View {
             .scrollContentBackground(.hidden)
             .lightGreenScreenStyle()
             .navigationTitle(L(.profileTitle))
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .favourites: FavouriteStoresView()
+                case .impact: CustomerAnalyticsView()
+                case .adminPanel: AdminPanelView()
+                case .help: HelpCenterView()
+                case .about: AboutNamtsetsobaView()
+                case .changePassword: ChangePasswordView()
+                }
+            }
             .refreshable {
                 _ = await appState.loadUserInfo()
                 await appState.loadOrders()
@@ -175,6 +177,10 @@ struct ProfileView: View {
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView()
             }
+        }
+        .onTabRootReset {
+            navigationPath = NavigationPath()
+            showEditProfile = false
         }
     }
 
