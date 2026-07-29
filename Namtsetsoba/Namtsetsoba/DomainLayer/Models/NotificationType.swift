@@ -6,6 +6,8 @@ enum NotificationType: String, CaseIterable, Identifiable {
     case order
     /// A favourited store published a new basket.
     case favourite
+    /// Customer/venue support message delivered to admins.
+    case support
 
     var id: String { rawValue }
 }

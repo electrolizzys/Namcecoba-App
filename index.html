@@ -7,8 +7,8 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --green: #1FA463;
-            --green-dark: #178A52;
+            --green: #2B8256;
+            --green-dark: #1A5E3C;
             --bg: #0E1B14;
             --card: #14261C;
             --text: #F2F7F3;
@@ -54,11 +54,11 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            background: rgba(31, 164, 99, 0.14);
+            background: rgba(43, 130, 86, 0.14);
             color: var(--green);
             font-size: 40px;
         }
-        h1 { font-size: 1.6em; margin: 0 0 12px; }
+        h1 { font-size: 1.55em; margin: 0 0 12px; }
         p { font-size: 1.02em; line-height: 1.5; color: var(--muted); margin: 8px 0 0; }
         input {
             width: 100%;
@@ -94,22 +94,22 @@
     <div class="card">
         <div class="brand">🌱 Namtsetsoba</div>
 
-        <!-- Email confirmation (default) -->
+        <!-- Email confirmation after registration -->
         <div id="confirm-page">
             <div class="badge">&#10003;</div>
-            <h1>Your email is confirmed</h1>
-            <p>Your Namtsetsoba account is now verified. You can close this page, return to the app, and sign in.</p>
+            <h1>Registration confirmed</h1>
+            <p>Your Namtsetsoba account email is verified. Close this page, open the app, and sign in with the email and password you registered.</p>
         </div>
 
-        <!-- Password reset -->
+        <!-- Password recovery -->
         <div id="reset-page" class="hidden">
             <div class="badge">&#128273;</div>
-            <h1>Set a new password</h1>
-            <p>Choose a new password for your Namtsetsoba account.</p>
+            <h1>Recover your password</h1>
+            <p>Choose a new password for your Namtsetsoba account. After saving, return to the app and sign in.</p>
             <input type="password" id="new-password" placeholder="New password (min. 6 characters)">
             <input type="password" id="confirm-password" placeholder="Confirm new password">
             <div id="reset-message"></div>
-            <button onclick="updatePassword()">Update password</button>
+            <button onclick="updatePassword()">Save new password</button>
         </div>
     </div>
 
@@ -119,8 +119,10 @@
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function init() {
-            const hash = window.location.hash;
-            if (hash && hash.includes('type=recovery')) {
+            const hash = window.location.hash || '';
+            const params = new URLSearchParams(hash.replace(/^#/, ''));
+            const type = params.get('type') || '';
+            if (type === 'recovery' || hash.includes('type=recovery')) {
                 document.getElementById('confirm-page').classList.add('hidden');
                 document.getElementById('reset-page').classList.remove('hidden');
             }
@@ -143,12 +145,12 @@
             const { error } = await client.auth.updateUser({ password: pw });
 
             if (error) {
-                msg.innerHTML = '<p class="error">Could not update your password. Please try again.</p>';
+                msg.innerHTML = '<p class="error">Could not update your password. The recovery link may have expired — request a new one from the app.</p>';
             } else {
                 document.getElementById('reset-page').innerHTML =
                     '<div class="badge">&#10003;</div>' +
-                    '<h1>Password updated</h1>' +
-                    '<p>Return to the Namtsetsoba app and sign in with your new password.</p>';
+                    '<h1>Password recovered</h1>' +
+                    '<p>Your password was updated. Return to the Namtsetsoba app and sign in with your new password.</p>';
             }
         }
 

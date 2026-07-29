@@ -22,15 +22,10 @@ struct AdminDashboardView: View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(spacing: 16) {
-                    Picker("Period", selection: $viewModel.period) {
-                        ForEach(SalesPeriod.allCases) { period in
-                            Text(period.localizedName).tag(period)
+                    AdminPeriodPicker(selection: $viewModel.period)
+                        .onChange(of: viewModel.period) { _, _ in
+                            Task { await viewModel.load() }
                         }
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: viewModel.period) { _, _ in
-                        Task { await viewModel.load() }
-                    }
 
                     if viewModel.isLoading && viewModel.stats == nil {
                         ProgressView().padding(.top, 60)

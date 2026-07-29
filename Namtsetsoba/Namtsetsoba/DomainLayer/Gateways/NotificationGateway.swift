@@ -1,8 +1,10 @@
 import Foundation
 
-/// Notification reads and read-state updates.
+/// Notification reads, read-state updates, and support submissions.
 protocol NotificationGateway {
     func fetchNotifications(userId: UUID, limit: Int) async throws -> [AppNotification]
     func markAsRead(id: UUID) async throws
     func markAllAsRead(userId: UUID) async throws
+    /// Sends a support message to every admin account (via edge function).
+    func submitSupportRequest(message: String) async throws
 }

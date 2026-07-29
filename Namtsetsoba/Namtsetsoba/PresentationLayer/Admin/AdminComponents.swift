@@ -53,12 +53,56 @@ struct AdminStatCard: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 118, alignment: .leading)
         .padding(14)
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
+    }
+}
+
+/// Equal-width branded period selector for admin analytics screens.
+struct AdminPeriodPicker: View {
+    @Binding var selection: SalesPeriod
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(SalesPeriod.allCases) { period in
+                let isSelected = selection == period
+                Button {
+                    withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+                        selection = period
+                    }
+                } label: {
+                    Text(period.localizedName)
+                        .font(.caption.weight(isSelected ? .bold : .semibold))
+                        .foregroundStyle(isSelected ? DesignTokens.primaryGreen : .secondary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.75)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 4)
+                        .background {
+                            if isSelected {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color(.systemBackground))
+                                    .shadow(color: .black.opacity(0.08), radius: 6, y: 2)
+                            }
+                        }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(5)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemBackground).opacity(0.9))
+        )
+        .accessibilityLabel(L(.commonPeriod))
     }
 }
 

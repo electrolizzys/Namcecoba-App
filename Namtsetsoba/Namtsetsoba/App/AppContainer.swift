@@ -87,6 +87,7 @@ final class AppContainer {
     var fetchNotifications: FetchNotificationsUseCase { FetchNotificationsUseCaseImpl(gateway: notificationGateway) }
     var markNotificationAsRead: MarkNotificationAsReadUseCase { MarkNotificationAsReadUseCaseImpl(gateway: notificationGateway) }
     var markAllNotificationsAsRead: MarkAllNotificationsAsReadUseCase { MarkAllNotificationsAsReadUseCaseImpl(gateway: notificationGateway) }
+    var submitSupportRequest: SubmitSupportRequestUseCase { SubmitSupportRequestUseCaseImpl(gateway: notificationGateway) }
 
     // MARK: - Favourite use cases
 

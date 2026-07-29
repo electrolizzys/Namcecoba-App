@@ -130,7 +130,7 @@ struct MainTabView: View {
         case .business:
             [.businessProducts, .orders, .venueAnalytics, .alerts, .profile]
         case .admin:
-            [.adminDashboard, .adminStores, .adminAddVenue, .profile]
+            [.adminDashboard, .adminStores, .adminAddVenue, .alerts, .profile]
         default:
             [.customerHome, .customerStores, .orders, .alerts, .profile]
         }

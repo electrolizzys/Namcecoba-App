@@ -167,7 +167,7 @@ final class AppState {
     @MainActor
     func loadNotifications() async {
         guard let userId else { return }
-        let limit = currentRole == .business ? 100 : 50
+        let limit = currentRole == .customer ? 50 : 100
         notifications = (try? await fetchNotificationsUseCase.execute(userId: userId, limit: limit)) ?? []
     }
 

@@ -37,4 +37,36 @@ final class ApiNotificationGateway: NotificationGateway {
             .eq("is_read", value: false)
             .execute()
     }
+
+    func submitSupportRequest(message: String) async throws {
+        struct Params: Encodable {
+            let p_message: String
+        }
+
+        // Prefer a SECURITY DEFINER RPC (docs/support_setup.sql). Fall back to the
+        // edge function if the RPC is not installed yet.
+        do {
+            try await client
+                .rpc("submit_support_request", params: Params(p_message: message))
+                .execute()
+            return
+        } catch {
+            let ns = error as NSError
+            let text = "\(error.localizedDescription) \(ns.domain) \(ns.userInfo)".lowercased()
+            let looksMissing =
+                text.contains("could not find")
+                || text.contains("pgrst202")
+                || text.contains("404")
+                || text.contains("does not exist")
+                || text.contains("schema cache")
+
+            guard looksMissing else { throw error }
+
+            struct Body: Encodable { let message: String }
+            try await client.functions.invoke(
+                "submit-support-request",
+                options: FunctionInvokeOptions(body: Body(message: message))
+            )
+        }
+    }
 }

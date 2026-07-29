@@ -235,8 +235,7 @@ struct AuthView: View {
     // MARK: - Helpers
 
     private func switchTo(_ screen: AuthViewModel.AuthScreen) {
-        viewModel.errorMessage = nil
-        viewModel.successMessage = nil
+        viewModel.clearBanners()
         withAnimation(.easeInOut(duration: 0.2)) {
             viewModel.currentScreen = screen
         }
@@ -307,7 +306,8 @@ private struct AuthField: View {
                 Button {
                     reveal.toggle()
                 } label: {
-                    Image(systemName: reveal ? "eye.slash.fill" : "eye.fill")
+                    // Slash when hidden (password concealed); open eye when revealed.
+                    Image(systemName: reveal ? "eye.fill" : "eye.slash.fill")
                         .font(.system(size: 15))
                         .foregroundStyle(.secondary)
                 }

@@ -8,12 +8,7 @@ struct AdminSalesView: View {
 
         ScrollView {
             VStack(spacing: 16) {
-                Picker("Period", selection: $viewModel.period) {
-                    ForEach(SalesPeriod.allCases) { period in
-                        Text(period.localizedName).tag(period)
-                    }
-                }
-                .pickerStyle(.segmented)
+                AdminPeriodPicker(selection: $viewModel.period)
                 .onChange(of: viewModel.period) { _, _ in
                     Task { await viewModel.load() }
                 }

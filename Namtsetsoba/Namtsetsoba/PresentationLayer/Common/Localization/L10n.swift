@@ -19,11 +19,21 @@ enum L10n: String {
     case authConfirmPassword, authUsername, authForgotPassword, authCreateAccount
     case authResetTitle, authResetSubtitle, authSendResetLink, authBackToSignIn
     case authRegisterConsent, authSigningOut
+    case authLoginFailed, authRegisterFailed, authRegisterSuccess
+    case authResetSuccess, authResetFailed
+    case authEnterEmail, authEnterPassword, authEnterUsername
+    case authPasswordTooShort, authPasswordsMismatch
 
     // Profile
     case profileTitle, profileSettings, profileLanguage, profileChooseLanguage
     case profileSignOut, profileActivity, profileVenueAnalytics, profileMyImpact
     case profileAdminPanel
+    case profileSupport, profileHelpCenter, profileAbout, profileAccountSecurity
+    case profileChangePassword, profileMyAccount
+    case profileActiveBaskets, profileIncomingOrders, profileOrdersPlaced
+    case profileFavoriteStores, profileStoreAppearance, profileStorePhotoHint
+    case profileChooseStorePhoto, profileUploading, profileStorePhotoUpdated
+    case profileCouldNotReadImage
 
     // Offers / Home
     case offersTitle, offersSearchPlaceholder, offersEmptyTitle, offersEmptyMessage
@@ -37,9 +47,11 @@ enum L10n: String {
 
     // Alerts / Notifications
     case alertsTitle, alertsSearchPlaceholder, alertsEmptyTitle, alertsEmptyMessage
+    case alertsFilterOrders, alertsFilterOffers, alertsFilterSupport, alertsReadAll
+    case alertsJustNow, alertsMinutesAgo, alertsHoursAgo, alertsDaysAgo
 
     // Common (extra)
-    case commonAll
+    case commonAll, commonPeriod, commonSend, commonMessage
 
     // Order status
     case statusConfirmed, statusReady, statusPickedUp, statusCancelled
@@ -104,4 +116,29 @@ enum L10n: String {
     case formOpeningHours, formOpens, formCloses
     case formVenueAccount, formTempPassword, formAccountHint
     case formCreateVenue, formVenueCreated
+
+    // Change password
+    case passwordTitle, passwordCurrent, passwordNew, passwordConfirm
+    case passwordUpdate, passwordUpdated
+    case passwordEnterCurrent, passwordTooShort, passwordMismatch
+    case passwordMustDiffer, passwordMissingEmail, passwordChangeFailed
+    case passwordHint
+
+    // About
+    case aboutTitle, aboutHero, aboutHowTitle, aboutHowBody
+    case aboutWhereTitle, aboutWhereBody, aboutWhyTitle, aboutWhyBody
+    case aboutVersionTitle, aboutVersionBody, aboutThanks
+
+    // Help
+    case helpTitle, helpNeedMore, helpCustomerContact, helpVenueContact
+    case helpCustomerPickupTitle, helpCustomerPickupBody
+    case helpCustomerPayTitle, helpCustomerPayBody
+    case helpCustomerFavTitle, helpCustomerFavBody
+    case helpCustomerVenuesTitle, helpCustomerVenuesBody
+    case helpVenueAccountTitle, helpVenueAccountBody
+    case helpVenueEditTitle, helpVenueEditBody
+    case helpVenuePhotoTitle, helpVenuePhotoBody
+    case helpVenueOrdersTitle, helpVenueOrdersBody
+    case helpSupportTitle, helpSupportSubtitle, helpSupportPlaceholder
+    case helpSupportSend, helpSupportSent, helpSupportFailed, helpSupportEmpty
 }

@@ -16,7 +16,8 @@ struct NotificationsView: View {
                 NotificationFilterBar(
                     selectedType: $selectedType,
                     // Venues only get order alerts — "Offers" (favourite) is customer-only.
-                    showsFavouriteFilter: appState.currentRole != .business
+                    showsFavouriteFilter: appState.currentRole == .customer,
+                    showsSupportFilter: appState.currentRole == .admin
                 )
                     .padding(.horizontal, DesignTokens.padding)
                     .padding(.top, 2)
@@ -47,7 +48,7 @@ struct NotificationsView: View {
             .toolbar {
                 if appState.unreadCount > 0 {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Read All") {
+                        Button(L(.alertsReadAll)) {
                             Task { await appState.markAllNotificationsRead() }
                         }
                         .font(.subheadline)
@@ -123,6 +124,7 @@ struct NotificationsView: View {
 struct NotificationFilterBar: View {
     @Binding var selectedType: NotificationType?
     var showsFavouriteFilter: Bool = true
+    var showsSupportFilter: Bool = false
 
     private struct Segment: Identifiable {
         let id: String
@@ -133,9 +135,18 @@ struct NotificationFilterBar: View {
 
     private var segments: [Segment] {
         var items = [
-            Segment(id: "all", type: nil, title: "All", icon: "square.grid.2x2"),
-            Segment(id: "order", type: .order, title: NotificationType.order.filterTitle, icon: NotificationType.order.filterIcon),
+            Segment(id: "all", type: nil, title: L(.commonAll), icon: "square.grid.2x2"),
         ]
+        if !showsSupportFilter {
+            items.append(
+                Segment(
+                    id: "order",
+                    type: .order,
+                    title: NotificationType.order.filterTitle,
+                    icon: NotificationType.order.filterIcon
+                )
+            )
+        }
         if showsFavouriteFilter {
             items.append(
                 Segment(
@@ -143,6 +154,16 @@ struct NotificationFilterBar: View {
                     type: .favourite,
                     title: NotificationType.favourite.filterTitle,
                     icon: NotificationType.favourite.filterIcon
+                )
+            )
+        }
+        if showsSupportFilter {
+            items.append(
+                Segment(
+                    id: "support",
+                    type: .support,
+                    title: NotificationType.support.filterTitle,
+                    icon: NotificationType.support.filterIcon
                 )
             )
         }
