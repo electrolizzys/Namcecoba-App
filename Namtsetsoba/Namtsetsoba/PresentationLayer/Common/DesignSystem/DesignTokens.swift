@@ -262,7 +262,7 @@ struct AppCategoryFilterCarousel: View {
 
                 ForEach(ProductCategory.allCases) { category in
                     AppFilterChip(
-                        title: category.rawValue,
+                        title: category.localizedName,
                         emoji: category.icon,
                         isSelected: selectedCategory == category
                     ) {
@@ -279,8 +279,7 @@ struct AppCategoryFilterCarousel: View {
     }
 }
 
-/// UIKit-backed horizontal scroller — SwiftUI `ScrollView(.horizontal)` still
-/// rubber-bands vertically; this locks movement to the X axis only.
+/// Horizontal scroller locked to the X axis (avoids vertical rubber-banding).
 private struct HorizontalOnlyScrollView<Content: View>: UIViewRepresentable {
     private let content: Content
 

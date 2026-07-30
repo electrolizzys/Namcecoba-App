@@ -114,12 +114,24 @@ enum Translations {
         .alertsMinutesAgo: "%dm ago",
         .alertsHoursAgo: "%dh ago",
         .alertsDaysAgo: "%dd ago",
+        .alertTitleNewOrder: "New Order Received",
+        .alertTitleOrderReady: "Order Ready for Pickup",
+        .alertTitleOrderPickedUp: "Order Picked Up",
+        .alertTitleOrderCancelled: "Order Cancelled",
+        .alertTitleNewOffer: "New offer at a favourite store",
+        .alertTitleSupport: "Support",
+        .alertTitleSupportFrom: "Support from %@",
 
         // Common (extra)
         .commonAll: "All",
         .commonPeriod: "Period",
         .commonSend: "Send",
         .commonMessage: "Message",
+        .categoryBakery: "Bakery",
+        .categoryRestaurant: "Restaurant",
+        .categoryGrocery: "Grocery",
+        .categoryCafe: "Cafe",
+        .categoryPastry: "Pastry",
 
         // Order status
         .statusConfirmed: "Confirmed",
@@ -468,12 +480,24 @@ enum Translations {
         .alertsMinutesAgo: "%dწთ წინ",
         .alertsHoursAgo: "%dსთ წინ",
         .alertsDaysAgo: "%dდღე წინ",
+        .alertTitleNewOrder: "ახალი შეკვეთა",
+        .alertTitleOrderReady: "შეკვეთა მზადაა აღებისთვის",
+        .alertTitleOrderPickedUp: "შეკვეთა აღებულია",
+        .alertTitleOrderCancelled: "შეკვეთა გაუქმებულია",
+        .alertTitleNewOffer: "ახალი შეთავაზება რჩეულ მაღაზიაში",
+        .alertTitleSupport: "მხარდაჭერა",
+        .alertTitleSupportFrom: "მხარდაჭერა: %@",
 
         // Common (extra)
         .commonAll: "ყველა",
         .commonPeriod: "პერიოდი",
         .commonSend: "გაგზავნა",
         .commonMessage: "შეტყობინება",
+        .categoryBakery: "საცხობი",
+        .categoryRestaurant: "რესტორანი",
+        .categoryGrocery: "სუპერმარკეტი",
+        .categoryCafe: "კაფე",
+        .categoryPastry: "კონდიტერია",
 
         // Order status
         .statusConfirmed: "დადასტურებული",

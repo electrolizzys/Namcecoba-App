@@ -99,7 +99,7 @@ struct OrderDetailView: View {
         isUpdating = true
         if await viewModel.updateStatus(orderId: order.id, to: .pickedUp) {
             currentStatus = .pickedUp
-            applyStatusLocally(.pickedUp)
+            await appState.applyOrderStatus(orderId: order.id, status: .pickedUp)
             appState.markRatingOffered(order.id)
             showRating = true
         }
@@ -343,19 +343,8 @@ struct OrderDetailView: View {
         isUpdating = true
         if await viewModel.updateStatus(orderId: order.id, to: newStatus) {
             currentStatus = newStatus
-            applyStatusLocally(newStatus)
+            await appState.applyOrderStatus(orderId: order.id, status: newStatus)
         }
         isUpdating = false
-    }
-
-    /// Mirrors the new status into whichever cached list holds this order so the UI
-    /// (active vs. past grouping) updates without a full reload.
-    private func applyStatusLocally(_ newStatus: OrderStatus) {
-        if let idx = appState.storeOrders.firstIndex(where: { $0.id == order.id }) {
-            appState.storeOrders[idx].status = newStatus
-        }
-        if let idx = appState.orders.firstIndex(where: { $0.id == order.id }) {
-            appState.orders[idx].status = newStatus
-        }
     }
 }

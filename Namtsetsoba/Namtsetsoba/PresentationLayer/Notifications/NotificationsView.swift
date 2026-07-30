@@ -263,7 +263,7 @@ struct NotificationRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(notification.title)
+                    Text(notification.localizedTitle)
                         .font(.subheadline.weight(notification.isRead ? .regular : .semibold))
                     Spacer()
                     Text(notification.timeAgo)

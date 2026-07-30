@@ -1,11 +1,7 @@
 import Foundation
 import Observation
 
-/// Holds the user's preferred language and resolves localized strings.
-///
-/// Language changes take effect immediately: the root view keys its identity on
-/// `language`, so flipping it rebuilds the view tree and every `L(...)` lookup is
-/// re-evaluated — no app restart required.
+/// Preferred language and localized string lookup.
 @Observable
 final class LocalizationManager {
     static let shared = LocalizationManager()

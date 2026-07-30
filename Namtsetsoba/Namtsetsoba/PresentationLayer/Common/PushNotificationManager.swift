@@ -11,7 +11,15 @@ final class PushNotificationManager: NSObject {
 
     private var lastRegisteredToken: String?
 
+    private let getCurrentUser: GetCurrentUserUseCase
+    private let registerDeviceToken: RegisterDeviceTokenUseCase
+    private let removeDeviceToken: RemoveDeviceTokenUseCase
+
     private override init() {
+        let container = AppContainer.shared
+        getCurrentUser = container.getCurrentUser
+        registerDeviceToken = container.registerDeviceToken
+        removeDeviceToken = container.removeDeviceToken
         super.init()
     }
 
@@ -27,10 +35,7 @@ final class PushNotificationManager: NSObject {
             let granted = try await UNUserNotificationCenter.current().requestAuthorization(
                 options: [.alert, .badge, .sound]
             )
-            guard granted else {
-                print("ℹ️ Push permission not granted")
-                return
-            }
+            guard granted else { return }
             UIApplication.shared.registerForRemoteNotifications()
         } catch {
             print("⚠️ Push permission request failed: \(error.localizedDescription)")
@@ -40,11 +45,10 @@ final class PushNotificationManager: NSObject {
     func handleDeviceToken(_ deviceToken: Data) {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         lastRegisteredToken = token
-        print("ℹ️ APNs device token: \(token)")
 
         Task { @MainActor in
-            guard let user = try? await AppContainer.shared.getCurrentUser.execute() else { return }
-            try? await AppContainer.shared.registerDeviceToken.execute(userId: user.id, token: token)
+            guard let user = try? await getCurrentUser.execute() else { return }
+            try? await registerDeviceToken.execute(userId: user.id, token: token)
         }
     }
 
@@ -62,9 +66,9 @@ final class PushNotificationManager: NSObject {
 
     @MainActor
     func clearTokenOnSignOut() async {
-        guard let user = try? await AppContainer.shared.getCurrentUser.execute(),
+        guard let user = try? await getCurrentUser.execute(),
               let token = lastRegisteredToken else { return }
-        try? await AppContainer.shared.removeDeviceToken.execute(userId: user.id, token: token)
+        try? await removeDeviceToken.execute(userId: user.id, token: token)
         lastRegisteredToken = nil
     }
 

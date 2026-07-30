@@ -1,7 +1,6 @@
 import SwiftUI
 
 extension OrderStatus {
-    /// Localized, user-facing status name (domain `displayName` stays English/stable).
     var localizedName: String {
         switch self {
         case .confirmed: L(.statusConfirmed)

@@ -1,11 +1,7 @@
 import Foundation
 import Supabase
 
-/// Network layer entry point.
-///
-/// Owns the single configured `SupabaseClient` used by every data-layer gateway.
-/// Nothing above the data layer should import `Supabase` or touch this client directly —
-/// gateways receive the client through `SupabaseClientProvider.shared.client`.
+/// Owns the shared `SupabaseClient` for data-layer gateways.
 enum SupabaseClientProvider {
     /// Backend project URL.
     private static let projectURL = URL(string: "https://cikpfliqixgkrydporpa.supabase.co")!

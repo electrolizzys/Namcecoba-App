@@ -9,15 +9,6 @@ enum AnalyticsPeriod: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var displayName: String {
-        switch self {
-        case .today: "Today"
-        case .week: "Week"
-        case .month: "Month"
-        case .allTime: "All time"
-        }
-    }
-
     /// Inclusive lower bound for the window, or `nil` when the period covers everything.
     func startDate(relativeTo now: Date = Date()) -> Date? {
         let calendar = Calendar.current

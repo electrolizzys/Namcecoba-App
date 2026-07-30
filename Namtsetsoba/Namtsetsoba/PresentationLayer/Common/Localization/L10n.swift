@@ -1,10 +1,6 @@
 import Foundation
 
-/// Keys for every user-facing string that supports localization.
-///
-/// New keys are added here and translated in `Translations`. Missing Georgian
-/// values fall back to English, and a missing English value falls back to the
-/// key name, so the app never shows a blank label.
+/// Keys for localized UI strings (`Translations` supplies `en` / `ka`).
 enum L10n: String {
     // Tabs
     case tabOffers, tabStores, tabOrders, tabAlerts, tabProfile
@@ -49,9 +45,14 @@ enum L10n: String {
     case alertsTitle, alertsSearchPlaceholder, alertsEmptyTitle, alertsEmptyMessage
     case alertsFilterOrders, alertsFilterOffers, alertsFilterSupport, alertsReadAll
     case alertsJustNow, alertsMinutesAgo, alertsHoursAgo, alertsDaysAgo
+    // In-app notification headers (DB stores English; UI localizes by pattern)
+    case alertTitleNewOrder, alertTitleOrderReady, alertTitleOrderPickedUp
+    case alertTitleOrderCancelled, alertTitleNewOffer, alertTitleSupport
+    case alertTitleSupportFrom
 
     // Common (extra)
     case commonAll, commonPeriod, commonSend, commonMessage
+    case categoryBakery, categoryRestaurant, categoryGrocery, categoryCafe, categoryPastry
 
     // Order status
     case statusConfirmed, statusReady, statusPickedUp, statusCancelled

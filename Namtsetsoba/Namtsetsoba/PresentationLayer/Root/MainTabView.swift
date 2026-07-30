@@ -3,8 +3,7 @@ import SwiftUI
 @Observable
 final class MainTabSelection {
     var selectedTab: Int = 0
-    /// Incremented for a tab whenever it should pop back to its root screen.
-    /// Views observe this via `tabRootResetToken` — do not remount with `.id()` (breaks UIKit nav bars).
+    /// Bumped to pop a tab to its root (observe via `tabRootResetToken`; avoid remounting with `.id()`).
     private(set) var rootResetTokens: [Int: Int] = [:]
 
     func rootID(for tab: Int) -> Int {

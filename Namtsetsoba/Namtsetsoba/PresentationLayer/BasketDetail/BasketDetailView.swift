@@ -40,7 +40,7 @@ struct BasketDetailView: View {
                 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(basket.store.category.rawValue.uppercased())
+                Text(basket.store.category.localizedName.uppercased())
                     .font(.caption.weight(.bold))
                     .foregroundStyle(.white.opacity(0.8))
                 Text(basket.title)

@@ -133,7 +133,7 @@ struct StoreListCard: View {
                         .lineLimit(1)
 
                     HStack(spacing: 12) {
-                        Label(store.category.rawValue, systemImage: "tag")
+                        Label(store.category.localizedName, systemImage: "tag")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
 

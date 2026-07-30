@@ -97,7 +97,7 @@ struct AdminStoresView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 HStack(spacing: 6) {
-                    Text("\(store.category.icon) \(store.category.rawValue)")
+                    Text("\(store.category.icon) \(store.category.localizedName)")
                     Text("·")
                     Text("\(store.openTime)–\(store.closeTime)")
                     Spacer()

@@ -85,7 +85,7 @@ struct StoreDetailView: View {
                 .font(.subheadline)
             }
 
-            Label(store.category.rawValue, systemImage: "tag.fill")
+            Label(store.category.localizedName, systemImage: "tag.fill")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }

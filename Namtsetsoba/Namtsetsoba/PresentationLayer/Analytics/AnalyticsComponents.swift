@@ -17,7 +17,7 @@ struct AnalyticsPeriodPicker: View {
     @Binding var selection: AnalyticsPeriod
 
     var body: some View {
-        Picker("Period", selection: $selection) {
+        Picker(L(.commonPeriod), selection: $selection) {
             ForEach(AnalyticsPeriod.allCases) { period in
                 Text(period.localizedName).tag(period)
             }

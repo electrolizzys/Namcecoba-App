@@ -88,9 +88,11 @@ final class AdminSupportInboxViewModel {
     var errorMessage: String?
 
     @ObservationIgnored private let fetchConversations: FetchSupportConversationsUseCase
+    @ObservationIgnored private let openConversation: OpenSupportConversationUseCase
 
     init(container: AppContainer = .shared) {
         fetchConversations = container.fetchSupportConversations
+        openConversation = container.openSupportConversation
     }
 
     @MainActor
@@ -103,5 +105,16 @@ final class AdminSupportInboxViewModel {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    @MainActor
+    func openChat(forUserId userId: UUID) async -> UUID? {
+        errorMessage = nil
+        do {
+            return try await openConversation.execute(userId: userId).id
+        } catch {
+            errorMessage = error.localizedDescription
+            return nil
+        }
     }
 }

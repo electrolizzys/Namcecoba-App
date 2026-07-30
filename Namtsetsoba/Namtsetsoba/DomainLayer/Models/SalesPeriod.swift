@@ -8,14 +8,6 @@ enum SalesPeriod: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var displayName: String {
-        switch self {
-        case .lastMonth: "Last month"
-        case .lastQuarter: "Last quarter"
-        case .lastYear: "Last year"
-        }
-    }
-
     /// Inclusive start of the selected window (relative to `now`).
     func startDate(relativeTo now: Date = Date()) -> Date {
         let calendar = Calendar.current

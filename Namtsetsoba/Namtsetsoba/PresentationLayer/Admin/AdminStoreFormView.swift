@@ -205,12 +205,12 @@ private struct StoreFormContent: View {
                     Button {
                         viewModel.category = category
                     } label: {
-                        Text("\(category.icon)  \(category.rawValue)")
+                        Text("\(category.icon)  \(category.localizedName)")
                     }
                 }
             } label: {
                 HStack {
-                    Text("\(viewModel.category.icon)  \(viewModel.category.rawValue)")
+                    Text("\(viewModel.category.icon)  \(viewModel.category.localizedName)")
                         .foregroundStyle(.primary)
                     Spacer()
                     Image(systemName: "chevron.up.chevron.down")

@@ -147,9 +147,11 @@ struct SupportChatView: View {
                 .disabled(viewModel.isSending || viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             .padding(.horizontal, DesignTokens.padding)
-            .padding(.vertical, 10)
+            .padding(.top, 10)
+            .padding(.bottom, 14)
             .background(.ultraThinMaterial)
-            .floatingTabBarBottomBarClearance()
+            // Sit just above the floating glass tab bar (less than list scroll clearance).
+            .padding(.bottom, 76)
         }
     }
 
@@ -288,10 +290,10 @@ struct AdminSupportInboxView: View {
 
     private func relativeTime(_ date: Date) -> String {
         let interval = Date().timeIntervalSince(date)
-        if interval < 60 { return "Just now" }
-        if interval < 3600 { return "\(Int(interval / 60))m" }
-        if interval < 86400 { return "\(Int(interval / 3600))h" }
-        return "\(Int(interval / 86400))d"
+        if interval < 60 { return L(.alertsJustNow) }
+        if interval < 3600 { return String(format: L(.alertsMinutesAgo), Int(interval / 60)) }
+        if interval < 86400 { return String(format: L(.alertsHoursAgo), Int(interval / 3600)) }
+        return String(format: L(.alertsDaysAgo), Int(interval / 86400))
     }
 }
 
@@ -299,12 +301,16 @@ struct AdminSupportInboxView: View {
 struct AdminStartSupportChatView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var usersViewModel = AdminUsersViewModel()
+    @State private var inboxViewModel = AdminSupportInboxViewModel()
     @State private var isOpening = false
-    @State private var errorMessage: String?
     let onOpened: (UUID) -> Void
 
     private var eligibleUsers: [UserProfile] {
         usersViewModel.filteredUsers.filter { $0.role != .admin }
+    }
+
+    private var errorMessage: String? {
+        inboxViewModel.errorMessage ?? usersViewModel.errorMessage
     }
 
     var body: some View {
@@ -375,13 +381,9 @@ struct AdminStartSupportChatView: View {
     @MainActor
     private func openChat(with user: UserProfile) async {
         isOpening = true
-        errorMessage = nil
         defer { isOpening = false }
-        do {
-            let conversation = try await AppContainer.shared.openSupportConversation.execute(userId: user.id)
-            onOpened(conversation.id)
-        } catch {
-            errorMessage = error.localizedDescription
+        if let id = await inboxViewModel.openChat(forUserId: user.id) {
+            onOpened(id)
         }
     }
 }

@@ -1,11 +1,7 @@
 import Foundation
 import Observation
 
-/// App-wide presentation state shared across tabs.
-///
-/// Holds session/profile info plus cached orders, notifications and venue data.
-/// All data access goes through injected use cases — this type never touches the
-/// network or database directly.
+/// App-wide presentation state shared across tabs (session, caches, navigation).
 @Observable
 final class AppState {
     private static let favouritesKey = "favourite_store_ids"
@@ -116,6 +112,17 @@ final class AppState {
             storeOrders = (try? await fetchStoreOrdersUseCase.execute(storeId: businessStore.id)) ?? []
         } else {
             ratedOrderIds = (try? await fetchRatedOrderIdsUseCase.execute(userId: userId)) ?? ratedOrderIds
+        }
+    }
+
+    /// Updates an order's status in the local caches without a full reload.
+    @MainActor
+    func applyOrderStatus(orderId: UUID, status: OrderStatus) {
+        if let idx = storeOrders.firstIndex(where: { $0.id == orderId }) {
+            storeOrders[idx].status = status
+        }
+        if let idx = orders.firstIndex(where: { $0.id == orderId }) {
+            orders[idx].status = status
         }
     }
 

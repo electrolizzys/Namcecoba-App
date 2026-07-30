@@ -6,7 +6,6 @@ struct CheckoutView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel = CheckoutViewModel()
     @State private var completedOrder: Order?
-    @State private var checkoutError: String?
 
     var body: some View {
         NavigationStack {
@@ -27,13 +26,13 @@ struct CheckoutView: View {
                 }
             }
             .alert("Checkout failed", isPresented: Binding(
-                get: { checkoutError != nil },
-                set: { if !$0 { checkoutError = nil } }
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
             )) {
-                Button("OK", role: .cancel) { checkoutError = nil }
+                Button("OK", role: .cancel) { viewModel.errorMessage = nil }
             } message: {
-                if let checkoutError {
-                    Text(checkoutError)
+                if let message = viewModel.errorMessage {
+                    Text(message)
                 }
             }
         }
@@ -175,40 +174,24 @@ struct CheckoutView: View {
         .padding()
     }
 
-    // MARK: - Payment Logic
-
     private func processPayment() {
-        viewModel.isProcessing = true
-        checkoutError = nil
         Task { @MainActor in
-            try? await Task.sleep(for: .seconds(1.5))
-
-            guard let userId = appState.userId else {
-                checkoutError = "Not logged in."
-                viewModel.isProcessing = false
+            guard let pickupCode = await viewModel.checkout(userId: appState.userId, basket: basket) else {
                 return
             }
 
-            do {
-                let pickupCode = try await viewModel.placeOrder(userId: userId, basket: basket)
-                await appState.loadOrders()
-                await appState.loadNotifications()
-                appState.triggerBasketRefresh()
+            await appState.loadOrders()
+            await appState.loadNotifications()
+            appState.triggerBasketRefresh()
 
-                guard let synced = appState.orders.first(where: { $0.pickupCode == pickupCode }) else {
-                    checkoutError = "Payment recorded but order could not be loaded. Pull to refresh on Orders."
-                    viewModel.isProcessing = false
-                    return
-                }
+            guard let synced = appState.orders.first(where: { $0.pickupCode == pickupCode }) else {
+                viewModel.errorMessage =
+                    "Payment recorded but order could not be loaded. Pull to refresh on Orders."
+                return
+            }
 
-                withAnimation {
-                    completedOrder = synced
-                    viewModel.isProcessing = false
-                }
-            } catch {
-                checkoutError = error.localizedDescription
-                print("⚠️ Checkout failed: \(error)")
-                viewModel.isProcessing = false
+            withAnimation {
+                completedOrder = synced
             }
         }
     }

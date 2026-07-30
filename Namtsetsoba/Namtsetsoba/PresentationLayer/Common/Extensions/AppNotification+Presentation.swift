@@ -21,6 +21,27 @@ extension NotificationType {
 }
 
 extension AppNotification {
+    /// Localized header for the Alerts list. Bodies stay as stored (basket/store names, user text).
+    var localizedTitle: String {
+        switch type {
+        case .favourite:
+            return L(.alertTitleNewOffer)
+        case .support:
+            if let name = Self.supportSenderName(from: title) {
+                return String(format: L(.alertTitleSupportFrom), name)
+            }
+            return L(.alertTitleSupport)
+        case .order:
+            switch Self.orderKind(from: title) {
+            case .cancelled: return L(.alertTitleOrderCancelled)
+            case .ready: return L(.alertTitleOrderReady)
+            case .pickedUp: return L(.alertTitleOrderPickedUp)
+            case .newOrder: return L(.alertTitleNewOrder)
+            case .unknown: return title
+            }
+        }
+    }
+
     /// Icon differs by order lifecycle (titles come from DB triggers).
     var systemImage: String {
         switch type {
@@ -29,12 +50,13 @@ extension AppNotification {
         case .support:
             return "lifepreserver.fill"
         case .order:
-            let t = title.lowercased()
-            if t.contains("cancelled") || t.contains("გაუქმ") { return "xmark.circle.fill" }
-            if t.contains("ready") || t.contains("მზად") { return "takeoutbag.and.cup.and.straw.fill" }
-            if t.contains("picked") || t.contains("აღებ") { return "checkmark.circle.fill" }
-            if t.contains("new order") || t.contains("ახალი") { return "bell.badge.fill" }
-            return "bag.fill"
+            switch Self.orderKind(from: title) {
+            case .cancelled: return "xmark.circle.fill"
+            case .ready: return "takeoutbag.and.cup.and.straw.fill"
+            case .pickedUp: return "checkmark.circle.fill"
+            case .newOrder: return "bell.badge.fill"
+            case .unknown: return "bag.fill"
+            }
         }
     }
 
@@ -45,21 +67,44 @@ extension AppNotification {
         case .support:
             return AdminPalette.purple
         case .order:
-            let t = title.lowercased()
-            if t.contains("cancelled") || t.contains("გაუქმ") { return .red }
-            if t.contains("ready") || t.contains("მზად") { return DesignTokens.primaryGreen }
-            if t.contains("picked") || t.contains("აღებ") { return .secondary }
-            if t.contains("new order") || t.contains("ახალი") { return .orange }
-            return .blue
+            switch Self.orderKind(from: title) {
+            case .cancelled: return .red
+            case .ready: return DesignTokens.primaryGreen
+            case .pickedUp: return .secondary
+            case .newOrder: return .orange
+            case .unknown: return .blue
+            }
         }
     }
 
     /// Order row whose title indicates cancellation (solid red icon in notification list).
     var isCancelledOrderNotification: Bool {
-        type == .order && (
-            title.localizedCaseInsensitiveContains("cancelled")
-            || title.localizedCaseInsensitiveContains("გაუქმ")
-        )
+        type == .order && Self.orderKind(from: title) == .cancelled
+    }
+
+    private enum OrderNotificationKind {
+        case newOrder, ready, pickedUp, cancelled, unknown
+    }
+
+    private static func orderKind(from title: String) -> OrderNotificationKind {
+        let t = title.lowercased()
+        if t.contains("cancelled") || t.contains("გაუქმ") { return .cancelled }
+        if t.contains("ready") || t.contains("მზად") { return .ready }
+        if t.contains("picked") || t.contains("აღებ") { return .pickedUp }
+        if t.contains("new order") || t.contains("ახალი შეკვეთ") { return .newOrder }
+        return .unknown
+    }
+
+    private static func supportSenderName(from title: String) -> String? {
+        let prefixes = ["Support from ", "მხარდაჭერა: ", "მხარდაჭერა "]
+        for prefix in prefixes {
+            if title.hasPrefix(prefix) {
+                let name = String(title.dropFirst(prefix.count))
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                return name.isEmpty ? nil : name
+            }
+        }
+        return nil
     }
 
     /// Human-friendly relative time ("Just now", "5m ago", …).

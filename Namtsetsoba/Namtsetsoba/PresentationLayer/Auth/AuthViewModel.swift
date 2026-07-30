@@ -2,8 +2,6 @@ import Foundation
 import Observation
 
 /// Presentation logic for the authentication screens.
-///
-/// Talks only to use cases — no transport or Supabase types appear here.
 @Observable
 final class AuthViewModel {
 
